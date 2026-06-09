@@ -78,10 +78,13 @@ export default function ChatSection({ verse }: Props) {
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (err: any) {
+      const isQuota = err.message?.toLowerCase().includes('quota') || err.message?.toLowerCase().includes('limit');
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Sorry, I had trouble answering that. ${err.message || 'Please try again.'}`,
+        content: isQuota
+          ? `The AI chat is currently unavailable because your API quota has been reached. The verse analysis and explanation above are still available. You can try again later or add more credits to your OpenAI account.`
+          : `Sorry, I had trouble answering that. ${err.message || 'Please try again.'}`,
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {

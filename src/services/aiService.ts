@@ -74,45 +74,37 @@ export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const prompt = `Analyze ${verse.reference} ("${verse.text}") and return your response in exactly 4 clearly separated sections labeled exactly as shown below. The original language section is the MOST important — be thorough and scholarly.
+  const prompt = `Analyze ${verse.reference} ("${verse.text}") and return your response as valid JSON only (no markdown, no code fences). Use exactly this structure:
 
-[SIMPLE MEANING]
-Write 2-3 paragraphs explaining this verse in simple, clear language that any Christian can understand. Be warm, pastoral, and accessible.
+{
+  "simple_meaning": "2-3 paragraphs explaining this verse in simple, clear language...",
+  "original_language": "For each key word (2-5 words), provide:\\n**Word:** [English]\\n**Strong's Number:** [e.g. G26]\\n**Original:** [Greek/Hebrew/Aramaic script]\\n**Transliteration:** [pronunciation]\\n**Root:** [root word and meaning]\\n**Word Type:** [grammatical details]\\n**Meaning:** [lexical meaning in context]\\n**Related Words:** [same-root words]",
+  "historical_context": "Author, date, audience, purpose, surrounding context, historical background in 2-3 paragraphs",
+  "life_application": "3-4 practical, actionable applications for modern Christians"
+}
 
-[ORIGINAL LANGUAGE ANALYSIS]
-For each key word in this verse (2-5 words), provide ALL of the following in a structured format:
+CRITICAL: Return ONLY valid JSON, nothing else. No explanations, no greetings, no markdown.`;
 
-**Word:** [English word from the verse]
-**Strong's Number:** [Strong's Concordance number, e.g. G26 or H7225]
-**Original:** [the word in Greek/Hebrew/Aramaic script]
-**Transliteration:** [pronunciation guide]
-**Root:** [root word and its meaning]
-**Word Type:** [verb/noun/adjective etc. with grammatical details: for verbs include tense/voice/mood, for nouns include gender/number]
-**Meaning:** [the full lexical meaning including how it is used in this specific context]
-**Related Words:** [other words from the same root that appear elsewhere in Scripture]
+  const result = await callAI(prompt, systemPrompt, 2800);
 
-Focus on words that carry deep theological significance. Include the Strong's number for every word analyzed.
-
-[HISTORICAL AND BIBLICAL CONTEXT]
-Provide who wrote this book, when, to whom, and why. Then explain the surrounding passage context and the historical/cultural background in 2-3 paragraphs.
-
-[LIFE APPLICATION]
-Give 3-4 practical, specific, and actionable life applications for modern Christians. Write in a warm, encouraging tone.`;
-
-  const result = await callAI(prompt, systemPrompt, 2500);
-
-  const extract = (label: string): string => {
-    const regex = new RegExp(`\\[${label}\\]([\\s\\S]*?)(?=\\[|$)`, 'i');
-    const match = result.match(regex);
-    return match ? match[1].trim() : `(${label.replace(/_/g, ' ')} not available)`;
-  };
-
-  return {
-    meaning: extract('SIMPLE MEANING'),
-    language: extract('ORIGINAL LANGUAGE ANALYSIS'),
-    context: extract('HISTORICAL AND BIBLICAL CONTEXT'),
-    application: extract('LIFE APPLICATION'),
-  };
+  try {
+    const jsonStr = result.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    const parsed = JSON.parse(jsonStr);
+    return {
+      meaning: parsed.simple_meaning || parsed.meaning || '',
+      language: parsed.original_language || parsed.language || '',
+      context: parsed.historical_context || parsed.context || '',
+      application: parsed.life_application || parsed.application || '',
+    };
+  } catch {
+    const lines = result.split('\n').filter(l => l.trim());
+    return {
+      meaning: lines.slice(0, Math.ceil(lines.length / 4)).join('\n') || '',
+      language: '',
+      context: '',
+      application: '',
+    };
+  }
 }
 
 export async function chatWithAI(

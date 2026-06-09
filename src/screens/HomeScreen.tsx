@@ -67,6 +67,7 @@ export default function HomeScreen({ onSearch }: Props) {
                 returnKeyType="search"
                 autoCapitalize="none"
                 autoCorrect={false}
+                multiline={false}
               />
               <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
                 <Text style={styles.searchBtnText}>✦ Explain Verse</Text>
@@ -196,19 +197,19 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#ddd0b8',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
+    borderWidth: 2,
+    borderColor: '#c9a84c',
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    fontSize: 19,
     color: '#1e1a14',
-    backgroundColor: '#faf6ed',
+    backgroundColor: '#ffffff',
   },
   searchBtn: {
     backgroundColor: '#1a2744',
-    borderRadius: 12,
-    paddingHorizontal: 20,
+    borderRadius: 14,
+    paddingHorizontal: 24,
     justifyContent: 'center',
     shadowColor: '#c9a84c',
     shadowOffset: { width: 0, height: 2 },
@@ -218,8 +219,8 @@ const styles = StyleSheet.create({
   },
   searchBtnText: {
     color: '#e2c97e',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: '700',
+    fontSize: 15,
   },
   quickRefs: {
     flexDirection: 'row',
