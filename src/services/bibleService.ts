@@ -1,13 +1,50 @@
 import CONFIG from '../config';
 import { VerseData } from '../types';
 
+const BOOK_ALIASES: Record<string, string> = {
+  '1 sam': '1 Samuel', '2 sam': '2 Samuel',
+  '1 kgs': '1 Kings', '2 kgs': '2 Kings',
+  '1 chr': '1 Chronicles', '2 chr': '2 Chronicles',
+  '1 cor': '1 Corinthians', '2 cor': '2 Corinthians',
+  '1 thes': '1 Thessalonians', '2 thes': '2 Thessalonians',
+  '1 tim': '1 Timothy', '2 tim': '2 Timothy',
+  '1 pet': '1 Peter', '2 pet': '2 Peter',
+  '1 jn': '1 John', '2 jn': '2 John', '3 jn': '3 John',
+  ruth: 'Ruth', esth: 'Esther', prov: 'Proverbs', ecc: 'Ecclesiastes',
+  jer: 'Jeremiah', lam: 'Lamentations', ezek: 'Ezekiel', dan: 'Daniel',
+  hos: 'Hosea', joel: 'Joel', amos: 'Amos', obad: 'Obadiah',
+  jon: 'Jonah', mic: 'Micah', nah: 'Nahum', hab: 'Habakkuk',
+  zeph: 'Zephaniah', hag: 'Haggai', zach: 'Zechariah', mal: 'Malachi',
+  matt: 'Matthew', mk: 'Mark', lk: 'Luke', jn: 'John',
+  rom: 'Romans', gal: 'Galatians', eph: 'Ephesians', phil: 'Philippians',
+  col: 'Colossians', heb: 'Hebrews', rev: 'Revelation',
+};
+
+function normalizeReference(ref: string): string {
+  const trimmed = ref.trim();
+  const lower = trimmed.toLowerCase();
+  for (const [alias, full] of Object.entries(BOOK_ALIASES)) {
+    if (lower.startsWith(alias)) {
+      return full + trimmed.slice(alias.length);
+    }
+  }
+  return trimmed;
+}
+
 export async function fetchVerse(reference: string): Promise<VerseData> {
-  const encoded = encodeURIComponent(reference);
+  const normalized = normalizeReference(reference);
+  if (!normalized) {
+    throw new Error('Please enter a verse reference (e.g. "John 3:16").');
+  }
+
+  const encoded = encodeURIComponent(normalized);
   const url = `${CONFIG.BIBLE_API_URL}/${encoded}?translation=${CONFIG.BIBLE_TRANSLATION}`;
 
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error('Verse not found. Please check the reference and try again.');
+    throw new Error(
+      'Verse not found. Try formats like "John 3:16", "Ps 23", or "Gen 1:1-10".',
+    );
   }
 
   const data = await response.json();

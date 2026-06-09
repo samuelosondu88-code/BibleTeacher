@@ -74,13 +74,24 @@ export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const prompt = `Analyze ${verse.reference} ("${verse.text}") and return your response in exactly 4 clearly separated sections labeled exactly as shown below.
+  const prompt = `Analyze ${verse.reference} ("${verse.text}") and return your response in exactly 4 clearly separated sections labeled exactly as shown below. The original language section is the MOST important — be thorough and scholarly.
 
 [SIMPLE MEANING]
 Write 2-3 paragraphs explaining this verse in simple, clear language that any Christian can understand. Be warm, pastoral, and accessible.
 
 [ORIGINAL LANGUAGE ANALYSIS]
-Analyze 2-4 key words from this verse in their original language (Hebrew, Greek, or Aramaic as appropriate). For each word provide: the English word, the original language name, a transliteration, and the deep meaning/significance.
+For each key word in this verse (2-5 words), provide ALL of the following in a structured format:
+
+**Word:** [English word from the verse]
+**Strong's Number:** [Strong's Concordance number, e.g. G26 or H7225]
+**Original:** [the word in Greek/Hebrew/Aramaic script]
+**Transliteration:** [pronunciation guide]
+**Root:** [root word and its meaning]
+**Word Type:** [verb/noun/adjective etc. with grammatical details: for verbs include tense/voice/mood, for nouns include gender/number]
+**Meaning:** [the full lexical meaning including how it is used in this specific context]
+**Related Words:** [other words from the same root that appear elsewhere in Scripture]
+
+Focus on words that carry deep theological significance. Include the Strong's number for every word analyzed.
 
 [HISTORICAL AND BIBLICAL CONTEXT]
 Provide who wrote this book, when, to whom, and why. Then explain the surrounding passage context and the historical/cultural background in 2-3 paragraphs.
