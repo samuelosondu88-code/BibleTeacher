@@ -9,10 +9,11 @@ interface AIMessage {
 async function callAI(
   prompt: string,
   systemContext: string,
+  maxTokens = 2000,
 ): Promise<string> {
   if (!CONFIG.OPENAI_API_KEY) {
     throw new Error(
-      'OpenAI API key not configured. Please add your API key in src/config.ts',
+      'Add your OpenAI API key in src/config.ts',
     );
   }
 
@@ -30,16 +31,20 @@ async function callAI(
     body: JSON.stringify({
       model: CONFIG.OPENAI_MODEL,
       messages,
-      max_tokens: 900,
+      max_tokens: maxTokens,
       temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(
-      errorData.error?.message || 'AI request failed. Please try again.',
-    );
+    const errorData = await response.json().catch(() => ({}));
+    const msg = errorData.error?.message || `API error ${response.status}`;
+    if (response.status === 429 || response.status === 402) {
+      throw new Error(
+        'API quota exceeded. The AI features need a paid OpenAI plan. The verse text is still displayed below.',
+      );
+    }
+    throw new Error(msg);
   }
 
   const data = await response.json();
@@ -65,59 +70,38 @@ Verse text: "${verse.text}"
 Keep explanations clear, warm, and accessible to all believers including new Christians.`;
 }
 
-export async function getSimpleMeaning(
+export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
-): Promise<string> {
-  return callAI(
-    `Explain this verse in simple, clear language that any Christian can understand: "${verse.reference}" — "${verse.text}". Write 2–3 paragraphs. Be warm, pastoral, and accessible.`,
-    systemPrompt,
-  );
-}
+): Promise<{ meaning: string; language: string; context: string; application: string }> {
+  const prompt = `Analyze ${verse.reference} ("${verse.text}") and return your response in exactly 4 clearly separated sections labeled exactly as shown below.
 
-export async function getOriginalLanguageAnalysis(
-  verse: VerseData,
-  systemPrompt: string,
-): Promise<string> {
-  return callAI(
-    `Analyze the key words from ${verse.reference} ("${verse.text}") in their original language (Hebrew, Greek, or Aramaic as appropriate). For each key word, provide:
+[SIMPLE MEANING]
+Write 2-3 paragraphs explaining this verse in simple, clear language that any Christian can understand. Be warm, pastoral, and accessible.
 
-**Word:** [English word]
-**Original Language:** [Greek/Hebrew/Aramaic]
-**Transliteration:** [transliteration]
-**Meaning:** [deep meaning and significance]
+[ORIGINAL LANGUAGE ANALYSIS]
+Analyze 2-4 key words from this verse in their original language (Hebrew, Greek, or Aramaic as appropriate). For each word provide: the English word, the original language name, a transliteration, and the deep meaning/significance.
 
-Identify 2–4 key words maximum. Focus on words that reveal deeper spiritual meaning.`,
-    systemPrompt,
-  );
-}
+[HISTORICAL AND BIBLICAL CONTEXT]
+Provide who wrote this book, when, to whom, and why. Then explain the surrounding passage context and the historical/cultural background in 2-3 paragraphs.
 
-export async function getHistoricalContext(
-  verse: VerseData,
-  systemPrompt: string,
-): Promise<string> {
-  return callAI(
-    `Provide the historical and biblical context for ${verse.reference} ("${verse.text}"). Include:
+[LIFE APPLICATION]
+Give 3-4 practical, specific, and actionable life applications for modern Christians. Write in a warm, encouraging tone.`;
 
-**Author:** [who wrote it]
-**Date:** [when it was written]
-**Audience:** [who it was written to]
-**Purpose:** [why it was written]
-**Immediate Context:** [surrounding passage context]
+  const result = await callAI(prompt, systemPrompt, 2500);
 
-Then write 2–3 paragraphs explaining the deeper historical and cultural background.`,
-    systemPrompt,
-  );
-}
+  const extract = (label: string): string => {
+    const regex = new RegExp(`\\[${label}\\]([\\s\\S]*?)(?=\\[|$)`, 'i');
+    const match = result.match(regex);
+    return match ? match[1].trim() : `(${label.replace(/_/g, ' ')} not available)`;
+  };
 
-export async function getLifeApplication(
-  verse: VerseData,
-  systemPrompt: string,
-): Promise<string> {
-  return callAI(
-    `Give 3–4 practical life applications of ${verse.reference} ("${verse.text}") for modern Christians. Make them specific, actionable, and encouraging. Write in a warm, pastoral tone.`,
-    systemPrompt,
-  );
+  return {
+    meaning: extract('SIMPLE MEANING'),
+    language: extract('ORIGINAL LANGUAGE ANALYSIS'),
+    context: extract('HISTORICAL AND BIBLICAL CONTEXT'),
+    application: extract('LIFE APPLICATION'),
+  };
 }
 
 export async function chatWithAI(
@@ -128,7 +112,7 @@ export async function chatWithAI(
   const systemPrompt = `You are Bible Teacher, an expert AI Bible study assistant focused specifically on ${verse.reference}.
 Verse text: "${verse.text}"
 Keep all answers focused on this verse. Be insightful, warm, and scholarly yet accessible.
-Answer in 2–4 paragraphs. Use plain language. Mention original language insights when relevant.`;
+Answer in 2-4 paragraphs. Use plain language. Mention original language insights when relevant.`;
 
   const messages: AIMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -155,10 +139,12 @@ Answer in 2–4 paragraphs. Use plain language. Mention original language insigh
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(
-      errorData.error?.message || 'AI request failed. Please try again.',
-    );
+    const errorData = await response.json().catch(() => ({}));
+    const msg = errorData.error?.message || 'AI request failed. Please try again.';
+    if (response.status === 429) {
+      throw new Error('Chat is temporarily unavailable due to API limits. Please try again later.');
+    }
+    throw new Error(msg);
   }
 
   const data = await response.json();

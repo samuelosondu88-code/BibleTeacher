@@ -3,7 +3,7 @@
 // You can get one at https://platform.openai.com/api-keys
 const CONFIG = {
   OPENAI_API_KEY: '',
-  OPENAI_MODEL: 'gpt-4o',
+  OPENAI_MODEL: 'gpt-4o-mini',
   BIBLE_API_URL: 'https://bible-api.com',
   BIBLE_TRANSLATION: 'kjv',
 };

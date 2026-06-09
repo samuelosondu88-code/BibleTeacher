@@ -10,10 +10,7 @@ import {
 import { VerseData, AIContent } from '../types';
 import {
   buildSystemPrompt,
-  getSimpleMeaning,
-  getOriginalLanguageAnalysis,
-  getHistoricalContext,
-  getLifeApplication,
+  getCombinedAnalysis,
 } from '../services/aiService';
 import VerseCard from '../components/VerseCard';
 import AccordionSection from '../components/AccordionSection';
@@ -49,41 +46,20 @@ export default function ResultsScreen({ verse, onBack }: Props) {
     try {
       const systemPrompt = buildSystemPrompt(verse);
 
-      setLoadingStep('Generating simple explanation…');
-      const meaning = await getSimpleMeaning(verse, systemPrompt);
-      setContent(prev => ({ ...prev, meaning }));
-
-      setLoadingStep('Analyzing original language…');
-      const language = await getOriginalLanguageAnalysis(verse, systemPrompt);
-      setContent(prev => ({ ...prev, language }));
-
-      setLoadingStep('Researching historical context…');
-      const context = await getHistoricalContext(verse, systemPrompt);
-      setContent(prev => ({ ...prev, context }));
-
-      setLoadingStep('Preparing life applications…');
-      const application = await getLifeApplication(verse, systemPrompt);
-      setContent(prev => ({ ...prev, application }));
-
+      setLoadingStep('Generating AI-powered Bible study…');
+      const analysis = await getCombinedAnalysis(verse, systemPrompt);
+      setContent(analysis);
       setLoading(false);
     } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.');
+      const msg = err.message || 'An error occurred. Please try again.';
+      if (msg.includes('quota')) {
+        setError(msg);
+      } else {
+        setError(msg);
+      }
       setLoading(false);
     }
   };
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#1a2744" />
-        <Text style={styles.errorIcon}>⚠</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.errorBtn} onPress={onBack}>
-          <Text style={styles.errorBtnText}>Try Again</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -98,6 +74,11 @@ export default function ResultsScreen({ verse, onBack }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {error && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>⚠ {error}</Text>
+          </View>
+        )}
         <VerseCard verse={verse} />
 
         <AccordionSection
@@ -187,33 +168,17 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: '#faf6ed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  errorIcon: {
-    fontSize: 40,
-    marginBottom: 12,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#b84040',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 24,
-  },
-  errorBtn: {
-    backgroundColor: '#1a2744',
+  errorBanner: {
+    backgroundColor: '#fff0f0',
     borderRadius: 12,
-    paddingHorizontal: 28,
-    paddingVertical: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e8b4b4',
   },
-  errorBtnText: {
-    color: '#e2c97e',
-    fontWeight: '600',
-    fontSize: 15,
+  errorBannerText: {
+    fontSize: 14,
+    color: '#b84040',
+    lineHeight: 20,
   },
 });
