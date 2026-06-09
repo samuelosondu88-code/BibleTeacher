@@ -1,0 +1,25 @@
+# ============================================
+#   BibleTeecha — netlify.toml
+#   Netlify deployment configuration
+# ============================================
+
+[build]
+  # Tells Netlify where your site files are (root folder)
+  publish = "."
+
+  # Tells Netlify where your serverless functions are
+  functions = "netlify/functions"
+
+# Redirect all API calls to the Netlify function
+[[redirects]]
+  from   = "/.netlify/functions/*"
+  to     = "/.netlify/functions/:splat"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

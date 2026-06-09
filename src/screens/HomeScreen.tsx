@@ -1,0 +1,263 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  ScrollView,
+} from 'react-native';
+
+interface Props {
+  onSearch: (reference: string) => void;
+}
+
+const QUICK_REFS = ['John 3:16', 'Psalm 23:1', 'Romans 8:28', 'Proverbs 3:5', 'Isaiah 41:10'];
+
+export default function HomeScreen({ onSearch }: Props) {
+  const [input, setInput] = useState('');
+
+  const handleSearch = () => {
+    const query = input.trim();
+    if (query) {
+      onSearch(query);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#1a2744" />
+
+      <View style={styles.headerBar}>
+        <View style={styles.logoWrap}>
+          <Text style={styles.logoCross}>✝</Text>
+          <View>
+            <Text style={styles.logoTitle}>Bible Teacher</Text>
+            <Text style={styles.logoSub}>AI-Powered Scripture Study</Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.hero}>
+          <Text style={styles.heroTitle}>
+            <Text style={styles.heroItalic}>Understand</Text>
+            {' the Word of God\n'}
+            <Text style={styles.heroSpan}>Deeply & Clearly</Text>
+          </Text>
+          <Text style={styles.heroSub}>
+            Enter any Bible verse or reference. Bible Teacher uses AI to reveal
+            the original language, historical context, and practical wisdom
+            within every passage.
+          </Text>
+
+          <View style={styles.searchCard}>
+            <Text style={styles.searchLabel}>
+              ENTER A BIBLE REFERENCE OR VERSE
+            </Text>
+            <View style={styles.searchRow}>
+              <TextInput
+                style={styles.searchInput}
+                value={input}
+                onChangeText={setInput}
+                placeholder="e.g. John 3:16 or Psalm 23:1"
+                placeholderTextColor="#bbb0a0"
+                onSubmitEditing={handleSearch}
+                returnKeyType="search"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+                <Text style={styles.searchBtnText}>✦ Explain Verse</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.quickRefs}>
+              <Text style={styles.quickLabel}>Quick:</Text>
+              {QUICK_REFS.map(ref => (
+                <TouchableOpacity
+                  key={ref}
+                  style={styles.quickBtn}
+                  onPress={() => onSearch(ref)}>
+                  <Text style={styles.quickBtnText}>{ref}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerCross}>✝</Text>
+            <Text style={styles.footerText}>
+              "Your word is a lamp to my feet and a light to my path." — Psalm
+              119:105
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#faf6ed',
+  },
+  headerBar: {
+    backgroundColor: '#1a2744',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: '#c9a84c',
+    shadowColor: '#1a2744',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  logoWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoCross: {
+    fontSize: 28,
+    color: '#c9a84c',
+  },
+  logoTitle: {
+    fontFamily: 'Georgia',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#e2c97e',
+  },
+  logoSub: {
+    fontSize: 11,
+    color: 'rgba(226,201,126,0.6)',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  hero: {
+    alignItems: 'center',
+  },
+  heroTitle: {
+    fontFamily: 'Georgia',
+    fontSize: 30,
+    fontWeight: '700',
+    color: '#1a2744',
+    textAlign: 'center',
+    lineHeight: 40,
+    marginBottom: 14,
+  },
+  heroItalic: {
+    fontStyle: 'italic',
+    color: '#c9a84c',
+  },
+  heroSpan: {
+    color: '#243156',
+  },
+  heroSub: {
+    fontSize: 15,
+    color: '#4a3f2f',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+    paddingHorizontal: 10,
+  },
+  searchCard: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#e2c97e',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    shadowColor: '#1a2744',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  searchLabel: {
+    fontSize: 12,
+    color: '#7a5c2e',
+    letterSpacing: 1.2,
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'stretch',
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: '#ddd0b8',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#1e1a14',
+    backgroundColor: '#faf6ed',
+  },
+  searchBtn: {
+    backgroundColor: '#1a2744',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    shadowColor: '#c9a84c',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  searchBtnText: {
+    color: '#e2c97e',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  quickRefs: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
+  },
+  quickLabel: {
+    fontSize: 12,
+    color: '#7a6a52',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  quickBtn: {
+    borderWidth: 1,
+    borderColor: '#ddd0b8',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  quickBtnText: {
+    fontSize: 13,
+    color: '#7a5c2e',
+  },
+  footer: {
+    marginTop: 48,
+    alignItems: 'center',
+  },
+  footerCross: {
+    fontSize: 24,
+    color: '#c9a84c',
+    marginBottom: 8,
+  },
+  footerText: {
+    fontSize: 13,
+    color: '#7a6a52',
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+});

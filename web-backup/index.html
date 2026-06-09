@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BibleTeecha — AI-Powered Bible Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Background texture -->
+  <div class="bg-texture"></div>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <div class="logo-cross">✝</div>
+        <div class="logo-text">
+          <span class="logo-main">BibleTeecha</span>
+          <span class="logo-sub">AI-Powered Scripture Study</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO / SEARCH SECTION -->
+  <section class="hero-section" id="home">
+    <div class="hero-inner">
+      <h1 class="hero-title">
+        <em>Understand</em> the Word of God<br/>
+        <span>Deeply &amp; Clearly</span>
+      </h1>
+      <p class="hero-subtitle">
+        Enter any Bible verse or keyword. BibleTeecha uses AI to reveal the original language,<br/>
+        historical context, and practical wisdom within every passage.
+      </p>
+
+      <div class="search-card">
+        <label class="search-label" for="verseInput">Enter a Bible Reference or Verse</label>
+        <div class="search-row">
+          <input
+            type="text"
+            id="verseInput"
+            class="search-input"
+            placeholder="e.g.  John 3:16  or  Psalm 23:1  or  Romans 8:28"
+            autocomplete="off"
+          />
+          <button class="search-btn" id="explainBtn" onclick="explainVerse()">
+            <span class="btn-icon">✦</span> Explain Verse
+          </button>
+        </div>
+        <div class="quick-refs">
+          <span class="quick-label">Quick:</span>
+          <button class="quick-btn" onclick="quickSearch('John 3:16')">John 3:16</button>
+          <button class="quick-btn" onclick="quickSearch('Psalm 23:1')">Psalm 23:1</button>
+          <button class="quick-btn" onclick="quickSearch('Romans 8:28')">Romans 8:28</button>
+          <button class="quick-btn" onclick="quickSearch('Proverbs 3:5')">Proverbs 3:5</button>
+          <button class="quick-btn" onclick="quickSearch('Isaiah 41:10')">Isaiah 41:10</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADING STATE -->
+  <div class="loading-section" id="loadingSection" style="display:none;">
+    <div class="loading-inner">
+      <div class="loading-cross">✝</div>
+      <p class="loading-text">Studying the Scriptures…</p>
+      <div class="loading-bar"><div class="loading-fill" id="loadingFill"></div></div>
+      <p class="loading-sub" id="loadingSub">Retrieving verse text…</p>
+    </div>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div class="error-section" id="errorSection" style="display:none;">
+    <div class="error-card">
+      <span class="error-icon">⚠</span>
+      <p class="error-msg" id="errorMsg">Something went wrong. Please try again.</p>
+      <button class="error-btn" onclick="resetApp()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <section class="results-section" id="resultsSection" style="display:none;">
+    <div class="results-inner">
+
+      <!-- Back button -->
+      <button class="back-btn" onclick="resetApp()">← New Search</button>
+
+      <!-- VERSE DISPLAY -->
+      <div class="verse-card">
+        <div class="verse-ref-badge" id="verseRefBadge">John 3:16</div>
+        <blockquote class="verse-text" id="verseText">
+          "For God so loved the world…"
+        </blockquote>
+        <div class="verse-meta" id="verseMeta">King James Version</div>
+      </div>
+
+      <!-- ACCORDION SECTIONS -->
+      <div class="accordion" id="accordionContainer">
+
+        <!-- Section 1: Simple Meaning -->
+        <div class="accord-item open" id="sec-meaning">
+          <button class="accord-head" onclick="toggleAccord('sec-meaning')">
+            <span class="accord-icon">☀</span>
+            <span class="accord-title">Simple Meaning</span>
+            <span class="accord-arrow">›</span>
+          </button>
+          <div class="accord-body">
+            <div class="accord-content" id="content-meaning">
+              <div class="skeleton-lines"><div></div><div></div><div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Original Language -->
+        <div class="accord-item" id="sec-language">
+          <button class="accord-head" onclick="toggleAccord('sec-language')">
+            <span class="accord-icon">α</span>
+            <span class="accord-title">Original Language Insights</span>
+            <span class="accord-arrow">›</span>
+          </button>
+          <div class="accord-body" style="display:none;">
+            <div class="accord-content" id="content-language">
+              <div class="skeleton-lines"><div></div><div></div><div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Historical Context -->
+        <div class="accord-item" id="sec-context">
+          <button class="accord-head" onclick="toggleAccord('sec-context')">
+            <span class="accord-icon">📜</span>
+            <span class="accord-title">Historical &amp; Biblical Context</span>
+            <span class="accord-arrow">›</span>
+          </button>
+          <div class="accord-body" style="display:none;">
+            <div class="accord-content" id="content-context">
+              <div class="skeleton-lines"><div></div><div></div><div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Life Application -->
+        <div class="accord-item" id="sec-application">
+          <button class="accord-head" onclick="toggleAccord('sec-application')">
+            <span class="accord-icon">♡</span>
+            <span class="accord-title">Life Application</span>
+            <span class="accord-arrow">›</span>
+          </button>
+          <div class="accord-body" style="display:none;">
+            <div class="accord-content" id="content-application">
+              <div class="skeleton-lines"><div></div><div></div><div></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end accordion -->
+
+      <!-- CHAT SECTION -->
+      <div class="chat-section" id="chatSection">
+        <div class="chat-header">
+          <span class="chat-icon">💬</span>
+          <div>
+            <h3 class="chat-title">Ask About This Verse</h3>
+            <p class="chat-subtitle">Ask any follow-up question about <span id="chatVerseRef">this verse</span></p>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-bubble assistant">
+            <span class="bubble-text">I'm ready to answer your questions about this verse. Ask me anything — about the original language, historical background, theology, or how it applies to your life today.</span>
+          </div>
+        </div>
+
+        <div class="chat-input-row">
+          <input
+            type="text"
+            class="chat-input"
+            id="chatInput"
+            placeholder="What does eternal life mean in this verse?"
+            onkeydown="if(event.key==='Enter') sendChat()"
+          />
+          <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()">
+            Send ›
+          </button>
+        </div>
+
+        <div class="chat-suggestions">
+          <span class="sugg-label">Suggestions:</span>
+          <button class="sugg-btn" id="sugg1" onclick="askSuggestion(this)">What is the key word here?</button>
+          <button class="sugg-btn" id="sugg2" onclick="askSuggestion(this)">How does this apply today?</button>
+          <button class="sugg-btn" id="sugg3" onclick="askSuggestion(this)">What is the Hebrew/Greek root?</button>
+        </div>
+      </div>
+
+    </div><!-- end results-inner -->
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-cross">✝</div>
+      <p class="footer-text">BibleTeecha — Illuminating Scripture through AI</p>
+      <p class="footer-sub">"Your word is a lamp to my feet and a light to my path." — Psalm 119:105</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
