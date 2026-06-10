@@ -67,7 +67,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <Text style={styles.backBtnText}>← New Search</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bible Teacher</Text>
+        <Text style={styles.headerTitle}>BibleTeecha</Text>
         <View style={styles.backBtn} />
       </View>
 

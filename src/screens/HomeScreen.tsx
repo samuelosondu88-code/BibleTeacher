@@ -33,7 +33,7 @@ export default function HomeScreen({ onSearch }: Props) {
         <View style={styles.logoWrap}>
           <Text style={styles.logoCross}>✝</Text>
           <View>
-            <Text style={styles.logoTitle}>Bible Teacher</Text>
+            <Text style={styles.logoTitle}>BibleTeecha</Text>
             <Text style={styles.logoSub}>AI-Powered Scripture Study</Text>
           </View>
         </View>
@@ -47,7 +47,7 @@ export default function HomeScreen({ onSearch }: Props) {
             <Text style={styles.heroSpan}>Deeply & Clearly</Text>
           </Text>
           <Text style={styles.heroSub}>
-            Enter any Bible verse or reference. Bible Teacher uses AI to reveal
+            Enter any Bible verse or reference. BibleTeecha uses AI to reveal
             the original language, historical context, and practical wisdom
             within every passage.
           </Text>

@@ -58,7 +58,7 @@ async function callAI(
 }
 
 export function buildSystemPrompt(verse: VerseData): string {
-  return `You are Bible Teacher, an expert AI Bible study assistant. You have deep knowledge of:
+  return `You are BibleTeecha, an expert AI Bible study assistant. You have deep knowledge of:
 - Biblical Greek, Hebrew, and Aramaic
 - Historical and cultural context of the Bible
 - Theological interpretation across Christian traditions
@@ -145,7 +145,7 @@ export async function chatWithAI(
   question: string,
   history: { role: 'user' | 'assistant'; content: string }[],
 ): Promise<string> {
-  const systemPrompt = `You are Bible Teacher, an expert AI Bible study assistant focused specifically on ${verse.reference}.
+  const systemPrompt = `You are BibleTeecha, an expert AI Bible study assistant focused specifically on ${verse.reference}.
 Verse text: "${verse.text}"
 Keep all answers focused on this verse. Be insightful, warm, and scholarly yet accessible.
 Answer in 2-4 paragraphs. Use plain language. Mention original language insights when relevant.`;
