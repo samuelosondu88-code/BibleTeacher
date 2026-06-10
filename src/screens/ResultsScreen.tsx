@@ -129,7 +129,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#faf6ed',
+    backgroundColor: '#f8f4eb',
   },
   headerBar: {
     backgroundColor: '#1a2744',
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     color: '#e2c97e',
     fontSize: 16,
     fontWeight: '700',
-    fontFamily: 'Georgia',
+    fontFamily: 'serif',
     textAlign: 'center',
     flex: 1,
   },
