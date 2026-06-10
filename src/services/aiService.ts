@@ -70,36 +70,69 @@ Verse text: "${verse.text}"
 Keep explanations clear, warm, and accessible to all believers including new Christians.`;
 }
 
+function extractJSON(text: string): any {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+  const cleaned = jsonMatch[0]
+    .replace(/\\n/g, '\n')
+    .replace(/\\"/g, '"')
+    .replace(/\\t/g, '  ');
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+}
+
 export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const prompt = `Analyze ${verse.reference} ("${verse.text}") and return your response as valid JSON only (no markdown, no code fences). Use exactly this structure:
+  const prompt = `Analyze ${verse.reference} ("${verse.text}") and respond as valid JSON. Use this structure:
 
 {
-  "simple_meaning": "2-3 paragraphs explaining this verse in simple, clear language...",
-  "original_language": "For each key word (2-5 words), provide:\\n**Word:** [English]\\n**Strong's Number:** [e.g. G26]\\n**Original:** [Greek/Hebrew/Aramaic script]\\n**Transliteration:** [pronunciation]\\n**Root:** [root word and meaning]\\n**Word Type:** [grammatical details]\\n**Meaning:** [lexical meaning in context]\\n**Related Words:** [same-root words]",
-  "historical_context": "Author, date, audience, purpose, surrounding context, historical background in 2-3 paragraphs",
+  "simple_meaning": "2-3 paragraphs explaining this verse in simple clear language...",
+  "original_language": "For each key word (2-5 words):\\n**Word:** [English]\\n**Strong's Number:** [e.g. G26]\\n**Original:** [Greek/Hebrew/Aramaic script]\\n**Transliteration:** [pronunciation]\\n**Root:** [root word and meaning]\\n**Word Type:** [grammatical details]\\n**Meaning:** [lexical meaning in context]",
+  "historical_context": "Author, date, audience, purpose, surrounding context, and historical background in 2-3 paragraphs",
   "life_application": "3-4 practical, actionable applications for modern Christians"
 }
 
-CRITICAL: Return ONLY valid JSON, nothing else. No explanations, no greetings, no markdown.`;
-
-  const result = await callAI(prompt, systemPrompt, 2800);
+Return ONLY valid JSON. No markdown, no code fences, no extra text.`;
 
   try {
-    const jsonStr = result.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
-    const parsed = JSON.parse(jsonStr);
+    const result = await callAI(prompt, systemPrompt, 2800);
+    const parsed = extractJSON(result);
+
+    if (parsed) {
+      return {
+        meaning: parsed.simple_meaning || parsed.meaning || '',
+        language: parsed.original_language || parsed.language || '',
+        context: parsed.historical_context || parsed.context || '',
+        application: parsed.life_application || parsed.application || '',
+      };
+    }
+
+    // JSON extraction failed — use raw text as simple meaning
     return {
-      meaning: parsed.simple_meaning || parsed.meaning || '',
-      language: parsed.original_language || parsed.language || '',
-      context: parsed.historical_context || parsed.context || '',
-      application: parsed.life_application || parsed.application || '',
+      meaning: result || '',
+      language: '',
+      context: '',
+      application: '',
     };
-  } catch {
-    const lines = result.split('\n').filter(l => l.trim());
+  } catch (err: any) {
+    const isQuota = err.message?.toLowerCase().includes('quota') ||
+      err.message?.toLowerCase().includes('limit') ||
+      err.message?.toLowerCase().includes('429');
+    if (isQuota) {
+      return {
+        meaning: '**API Quota Reached**\n\nTo see the AI-powered Bible study features, add credits to your OpenAI account or use a different API key in `src/config.ts`. The verse text is displayed above.',
+        language: '**API Quota Reached**\n\nOriginal language analysis requires an active OpenAI API key with available credits.',
+        context: '**API Quota Reached**\n\nHistorical context requires an active OpenAI API key with available credits.',
+        application: '**API Quota Reached**\n\nLife application requires an active OpenAI API key with available credits.',
+      };
+    }
     return {
-      meaning: lines.slice(0, Math.ceil(lines.length / 4)).join('\n') || '',
+      meaning: `**Analysis unavailable**\n\n${err.message || 'Something went wrong. Please try again.'}`,
       language: '',
       context: '',
       application: '',

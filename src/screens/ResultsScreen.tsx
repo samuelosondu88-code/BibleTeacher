@@ -33,7 +33,6 @@ export default function ResultsScreen({ verse, onBack }: Props) {
   });
   const [loading, setLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState('Retrieving verse text…');
-  const [error, setError] = useState('');
 
   useEffect(() => {
     loadContent();
@@ -41,7 +40,6 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 
   const loadContent = async () => {
     setLoading(true);
-    setError('');
 
     try {
       const systemPrompt = buildSystemPrompt(verse);
@@ -51,12 +49,12 @@ export default function ResultsScreen({ verse, onBack }: Props) {
       setContent(analysis);
       setLoading(false);
     } catch (err: any) {
-      const msg = err.message || 'An error occurred. Please try again.';
-      if (msg.includes('quota')) {
-        setError(msg);
-      } else {
-        setError(msg);
-      }
+      setContent({
+        meaning: err.message || 'An error occurred.',
+        language: '',
+        context: '',
+        application: '',
+      });
       setLoading(false);
     }
   };
@@ -74,11 +72,6 @@ export default function ResultsScreen({ verse, onBack }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {error && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>⚠ {error}</Text>
-          </View>
-        )}
         <VerseCard verse={verse} />
 
         <AccordionSection
@@ -167,18 +160,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
-  },
-  errorBanner: {
-    backgroundColor: '#fff0f0',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e8b4b4',
-  },
-  errorBannerText: {
-    fontSize: 14,
-    color: '#b84040',
-    lineHeight: 20,
   },
 });
