@@ -107,11 +107,13 @@ export default function ChatSection({ verse }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerIcon}>💬</Text>
+        <View style={styles.headerIconWrap}>
+          <Text style={styles.headerIcon}>💬</Text>
+        </View>
         <View>
           <Text style={styles.headerTitle}>Ask About This Verse</Text>
           <Text style={styles.headerSub}>
-            Ask any follow-up question about {verse.reference}
+            Follow-up questions about {verse.reference}
           </Text>
         </View>
       </View>
@@ -134,45 +136,38 @@ export default function ChatSection({ verse }: Props) {
 
         {isLoading && (
           <View style={styles.thinking}>
-            <Text style={styles.thinkingDot}>•</Text>
-            <Text style={[styles.thinkingDot, styles.dot2]}>•</Text>
-            <Text style={[styles.thinkingDot, styles.dot3]}>•</Text>
+            <View style={styles.thinkingDot} />
+            <View style={[styles.thinkingDot, styles.dot2]} />
+            <View style={[styles.thinkingDot, styles.dot3]} />
           </View>
         )}
 
         <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="What does eternal life mean in this verse?"
-            placeholderTextColor="#bbb0a0"
-            onSubmitEditing={() => sendMessage()}
-            returnKeyType="send"
-            editable={!isLoading}
-          />
+          <View style={styles.inputWrap}>
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Ask a follow-up question…"
+              placeholderTextColor="#9a8c78"
+              onSubmitEditing={() => sendMessage()}
+              returnKeyType="send"
+              editable={!isLoading}
+            />
+          </View>
           <TouchableOpacity
             style={[styles.sendBtn, isLoading && styles.sendBtnDisabled]}
             onPress={() => sendMessage()}
-            disabled={isLoading}>
+            disabled={isLoading}
+            activeOpacity={0.8}>
             <Text style={styles.sendBtnText}>Send</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.suggestions}>
-          <Text style={styles.suggLabel}>Suggestions:</Text>
+          <Text style={styles.suggLabel}>Suggestions</Text>
           <View style={styles.suggRow}>
-            {SUGGESTIONS.slice(0, 2).map(s => (
-              <TouchableOpacity
-                key={s}
-                style={styles.suggBtn}
-                onPress={() => sendMessage(s)}>
-                <Text style={styles.suggBtnText}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.suggRow}>
-            {SUGGESTIONS.slice(2).map(s => (
+            {SUGGESTIONS.map(s => (
               <TouchableOpacity
                 key={s}
                 style={styles.suggBtn}
@@ -190,38 +185,46 @@ export default function ChatSection({ verse }: Props) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#e8dfc8',
+    borderWidth: 1,
+    borderColor: '#ddd0b8',
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: 24,
-    shadowColor: '#1a2744',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowColor: '#0d1b2a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
   },
   header: {
-    backgroundColor: '#1a2744',
+    backgroundColor: '#0d1b2a',
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    borderBottomWidth: 2,
-    borderBottomColor: '#c9a84c',
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#c9952e',
+  },
+  headerIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#c9952e18',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerIcon: {
-    fontSize: 22,
+    fontSize: 17,
   },
   headerTitle: {
-    fontFamily: 'Georgia',
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#e2c97e',
+    fontFamily: 'serif',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#d4af37',
   },
   headerSub: {
-    fontSize: 13,
-    color: 'rgba(226,201,126,0.6)',
+    fontSize: 12,
+    color: 'rgba(212,175,55,0.5)',
     marginTop: 1,
   },
   chatContainer: {
@@ -229,11 +232,11 @@ const styles = StyleSheet.create({
   },
   messageList: {
     maxHeight: 360,
-    backgroundColor: '#faf6ed',
+    backgroundColor: '#faf7f2',
   },
   messageListContent: {
     padding: 16,
-    gap: 12,
+    gap: 10,
   },
   bubble: {
     maxWidth: '85%',
@@ -241,7 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: '#1a2744',
+    backgroundColor: '#0d1b2a',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -250,7 +253,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#e8dfc8',
+    borderColor: '#ddd0b8',
   },
   userText: {
     color: '#f5e9c0',
@@ -258,7 +261,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   assistantText: {
-    color: '#4a3f2f',
+    color: '#2c2418',
     fontSize: 15,
     lineHeight: 22,
   },
@@ -266,38 +269,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingBottom: 8,
-    gap: 4,
-    backgroundColor: '#faf6ed',
+    gap: 5,
+    backgroundColor: '#faf7f2',
   },
   thinkingDot: {
-    fontSize: 20,
-    color: '#c9a84c',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#c9952e',
   },
-  dot2: { opacity: 0.6 },
-  dot3: { opacity: 0.3 },
+  dot2: { opacity: 0.5 },
+  dot3: { opacity: 0.2 },
   inputRow: {
     flexDirection: 'row',
     padding: 12,
+    paddingTop: 8,
     gap: 8,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e8dfc8',
+    borderTopColor: '#f0e8d4',
   },
-  input: {
+  inputWrap: {
     flex: 1,
     borderWidth: 1.5,
     borderColor: '#ddd0b8',
-    borderRadius: 12,
+    borderRadius: 14,
+    backgroundColor: '#faf7f2',
+    overflow: 'hidden',
+  },
+  input: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    fontFamily: 'System',
-    color: '#1e1a14',
-    backgroundColor: '#faf6ed',
+    color: '#1a1612',
   },
   sendBtn: {
-    backgroundColor: '#1a2744',
-    borderRadius: 12,
+    backgroundColor: '#0d1b2a',
+    borderRadius: 14,
     paddingHorizontal: 20,
     justifyContent: 'center',
   },
@@ -305,37 +313,40 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendBtnText: {
-    color: '#e2c97e',
+    color: '#d4af37',
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 14,
   },
   suggestions: {
     padding: 12,
-    paddingTop: 4,
-    backgroundColor: '#ffffff',
-    gap: 6,
+    paddingTop: 8,
+    paddingBottom: 14,
+    backgroundColor: '#faf7f2',
+    borderTopWidth: 1,
+    borderTopColor: '#f0e8d4',
   },
   suggLabel: {
-    fontSize: 12,
-    color: '#7a6a52',
+    fontSize: 10,
+    color: '#8c7d6a',
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginBottom: 4,
+    letterSpacing: 1.5,
+    marginBottom: 8,
   },
   suggRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
     flexWrap: 'wrap',
   },
   suggBtn: {
     borderWidth: 1,
     borderColor: '#ddd0b8',
-    borderRadius: 20,
-    paddingHorizontal: 14,
+    borderRadius: 16,
+    paddingHorizontal: 12,
     paddingVertical: 5,
+    backgroundColor: '#ffffff',
   },
   suggBtnText: {
-    fontSize: 13,
-    color: '#7a5c2e',
+    fontSize: 12,
+    color: '#5c4e3d',
   },
 });

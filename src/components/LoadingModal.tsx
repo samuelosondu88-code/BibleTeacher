@@ -11,10 +11,13 @@ export default function LoadingModal({ visible, step }: Props) {
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.cross}>✝</Text>
-          <Text style={styles.title}>Studying the Scriptures…</Text>
+          <View style={styles.iconWrap}>
+            <Text style={styles.icon}>🕊</Text>
+          </View>
+          <Text style={styles.title}>Studying the Scriptures</Text>
+          <View style={styles.divider} />
           <View style={styles.bar}>
-            <ActivityIndicator size="small" color="#c9a84c" />
+            <ActivityIndicator size="small" color="#c9952e" />
           </View>
           <Text style={styles.step}>{step}</Text>
         </View>
@@ -26,7 +29,7 @@ export default function LoadingModal({ visible, step }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(26,39,68,0.6)',
+    backgroundColor: 'rgba(13,27,42,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
@@ -34,34 +37,50 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
     borderRadius: 24,
-    padding: 40,
+    padding: 36,
     alignItems: 'center',
     width: '100%',
-    maxWidth: 320,
-    shadowColor: '#000',
+    maxWidth: 300,
+    shadowColor: '#0d1b2a',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 40,
     elevation: 20,
   },
-  cross: {
-    fontSize: 40,
-    color: '#c9a84c',
+  iconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f5f1e8',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  icon: {
+    fontSize: 30,
   },
   title: {
-    fontFamily: 'Georgia',
+    fontFamily: 'serif',
     fontSize: 18,
     fontWeight: '600',
-    color: '#1a2744',
-    marginBottom: 24,
+    color: '#1a1612',
+    marginBottom: 4,
   },
-  bar: {
+  divider: {
+    width: 40,
+    height: 2,
+    backgroundColor: '#c9952e',
+    borderRadius: 1,
+    marginVertical: 12,
     marginBottom: 16,
   },
+  bar: {
+    marginBottom: 12,
+  },
   step: {
-    fontSize: 14,
-    color: '#7a6a52',
+    fontSize: 13,
+    color: '#6b5d4a',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
 });

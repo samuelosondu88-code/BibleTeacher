@@ -9,6 +9,7 @@ interface Props {
 export default function VerseCard({ verse }: Props) {
   return (
     <View style={styles.card}>
+      <View style={styles.accent} />
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{verse.reference}</Text>
       </View>
@@ -20,44 +21,58 @@ export default function VerseCard({ verse }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a2744',
-    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
     padding: 28,
-    marginBottom: 24,
+    marginBottom: 20,
     alignItems: 'center',
-    shadowColor: '#1a2744',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 40,
-    elevation: 12,
+    shadowColor: '#0d1b2a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#e8dfc8',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  accent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: '#c9952e',
   },
   badge: {
-    backgroundColor: '#c9a84c',
-    paddingHorizontal: 18,
-    paddingVertical: 5,
+    backgroundColor: '#f5f1e8',
+    paddingHorizontal: 20,
+    paddingVertical: 6,
     borderRadius: 20,
-    marginBottom: 16,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#e0d5c0',
   },
   badgeText: {
-    color: '#1a2744',
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 1.5,
+    color: '#5c4e3d',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.8,
     textTransform: 'uppercase',
   },
   verseText: {
-    fontFamily: 'Georgia',
+    fontFamily: 'serif',
     fontSize: 20,
     fontStyle: 'italic',
-    color: '#f5e9c0',
+    color: '#2c2418',
     textAlign: 'center',
     lineHeight: 32,
   },
   translation: {
     marginTop: 14,
-    fontSize: 12,
-    color: 'rgba(201,168,76,0.55)',
-    letterSpacing: 1.5,
+    fontSize: 11,
+    color: '#8c7d6a',
+    letterSpacing: 1.8,
     textTransform: 'uppercase',
   },
 });

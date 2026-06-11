@@ -61,11 +61,12 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1a2744" />
+      <StatusBar barStyle="light-content" backgroundColor="#0d1b2a" />
 
       <View style={styles.headerBar}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-          <Text style={styles.backBtnText}>← New Search</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
+          <Text style={styles.backArrow}>←</Text>
+          <Text style={styles.backBtnText}>New Search</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>BibleTeecha</Text>
         <View style={styles.backBtn} />
@@ -109,7 +110,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 
         <AccordionSection
           title="Life Application"
-          icon="♡"
+          icon="🕊"
           defaultOpen={!loading && !!content.application}>
           {loading && !content.application ? (
             <SkeletonLoader lines={3} />
@@ -129,33 +130,42 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f4eb',
+    backgroundColor: '#f5f1e8',
   },
   headerBar: {
-    backgroundColor: '#1a2744',
+    backgroundColor: '#0d1b2a',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: '#c9a84c',
+    borderBottomWidth: 1,
+    borderBottomColor: '#c9952e',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   backBtn: {
     width: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  backArrow: {
+    color: '#c9952e',
+    fontSize: 18,
+    fontWeight: '600',
   },
   backBtnText: {
-    color: '#e2c97e',
+    color: '#d4af37',
     fontSize: 14,
     fontWeight: '600',
   },
   headerTitle: {
-    color: '#e2c97e',
+    color: '#d4af37',
     fontSize: 16,
     fontWeight: '700',
     fontFamily: 'serif',
     textAlign: 'center',
     flex: 1,
+    letterSpacing: 0.3,
   },
   scrollContent: {
     padding: 16,

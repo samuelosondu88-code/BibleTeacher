@@ -13,12 +13,12 @@ export default function SkeletonLoader({ lines = 3 }: Props) {
       Animated.sequence([
         Animated.timing(anim, {
           toValue: 1,
-          duration: 1000,
+          duration: 1200,
           useNativeDriver: true,
         }),
         Animated.timing(anim, {
           toValue: 0,
-          duration: 1000,
+          duration: 1200,
           useNativeDriver: true,
         }),
       ]),
@@ -29,10 +29,10 @@ export default function SkeletonLoader({ lines = 3 }: Props) {
 
   const opacity = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
+    outputRange: [0.15, 0.4],
   });
 
-  const widths = [90, 75, 60];
+  const widths = [90, 75, 60, 85, 70];
 
   return (
     <View style={styles.container}>
@@ -41,10 +41,7 @@ export default function SkeletonLoader({ lines = 3 }: Props) {
           key={i}
           style={[
             styles.line,
-            {
-              width: `${widths[i] || 50}%`,
-              opacity,
-            },
+            { width: `${widths[i] || 50}%`, opacity },
           ]}
         />
       ))}
@@ -57,8 +54,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   line: {
-    height: 14,
-    backgroundColor: '#e0d8c8',
-    borderRadius: 4,
+    height: 13,
+    backgroundColor: '#d4c5a0',
+    borderRadius: 6,
   },
 });
