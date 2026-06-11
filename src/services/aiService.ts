@@ -2,14 +2,14 @@ import CONFIG from '../config';
 import { VerseData } from '../types';
 
 function buildGeminiUrl(): string {
-  return `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
+  return `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${CONFIG.OPENAI_API_KEY}`;
 }
 
 async function callGemini(
   prompt: string,
   systemContext: string,
 ): Promise<string> {
-  if (!CONFIG.GEMINI_API_KEY) {
+  if (!CONFIG.OPENAI_API_KEY) {
     throw new Error(
       'Get a free API key at https://aistudio.google.com/app/apikey then add it in src/config.ts',
     );
@@ -117,7 +117,7 @@ export async function chatWithAI(
   question: string,
   history: { role: 'user' | 'assistant'; content: string }[],
 ): Promise<string> {
-  if (!CONFIG.GEMINI_API_KEY) {
+  if (!CONFIG.OPENAI_API_KEY) {
     throw new Error(
       'Get a free API key at https://aistudio.google.com/app/apikey then add it in src/config.ts',
     );
