@@ -15,10 +15,10 @@ interface Props {
 }
 
 const SECTION_COLORS: Record<string, string> = {
-  'Simple Meaning': '#c9952e',
-  'Original Language Insights': '#2c5f8a',
-  'Historical & Biblical Context': '#5a4a3a',
-  'Life Application': '#3a7d44',
+  'Simple Meaning': '#d97706',
+  'Original Language Insights': '#0f766e',
+  'Historical & Biblical Context': '#7c3aed',
+  'Life Application': '#059669',
 };
 
 export default function AccordionSection({
@@ -29,7 +29,7 @@ export default function AccordionSection({
 }: Props) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const anim = useRef(new Animated.Value(defaultOpen ? 1 : 0)).current;
-  const color = SECTION_COLORS[title] || '#c9952e';
+  const color = SECTION_COLORS[title] || '#d97706';
 
   useEffect(() => {
     Animated.timing(anim, {
@@ -79,11 +79,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e8dfc8',
+    borderColor: '#d1d5db',
   },
   containerOpen: {
-    borderColor: '#d4c5a0',
-    shadowColor: '#0d1b2a',
+    borderColor: '#9ca3af',
+    shadowColor: '#0f766e',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c2418',
+    color: '#1c1917',
     flex: 1,
   },
   arrow: {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   body: {
     borderTopWidth: 1,
-    borderTopColor: '#f0e8d4',
+    borderTopColor: '#f3f4f6',
   },
   content: {
     padding: 16,

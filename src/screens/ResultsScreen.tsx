@@ -61,7 +61,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0d1b2a" />
+      <StatusBar barStyle="light-content" backgroundColor="#0f766e" />
 
       <View style={styles.headerBar}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
@@ -130,14 +130,14 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f1e8',
+    backgroundColor: '#f0fdfa',
   },
   headerBar: {
-    backgroundColor: '#0d1b2a',
+    backgroundColor: '#0f766e',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#c9952e',
+    borderBottomColor: '#f59e0b',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -149,17 +149,17 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   backArrow: {
-    color: '#c9952e',
+    color: '#fbbf24',
     fontSize: 18,
     fontWeight: '600',
   },
   backBtnText: {
-    color: '#d4af37',
+    color: '#fbbf24',
     fontSize: 14,
     fontWeight: '600',
   },
   headerTitle: {
-    color: '#d4af37',
+    color: '#fbbf24',
     fontSize: 16,
     fontWeight: '700',
     fontFamily: 'serif',

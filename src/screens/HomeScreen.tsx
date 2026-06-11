@@ -27,7 +27,7 @@ export default function HomeScreen({ onSearch }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0d1b2a" />
+      <StatusBar barStyle="light-content" backgroundColor="#0f766e" />
 
       <View style={styles.headerBar}>
         <View style={styles.logoWrap}>
@@ -61,7 +61,7 @@ export default function HomeScreen({ onSearch }: Props) {
                   value={input}
                   onChangeText={setInput}
                   placeholder="e.g. John 3:16 or Psalm 23"
-                  placeholderTextColor="#9a8c78"
+                  placeholderTextColor="#9ca3af"
                   onSubmitEditing={handleSearch}
                   returnKeyType="search"
                   autoCapitalize="none"
@@ -92,21 +92,21 @@ export default function HomeScreen({ onSearch }: Props) {
 
           <View style={styles.features}>
             <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: '#c9952e18' }]}>
+              <View style={[styles.featureIcon, { backgroundColor: '#d9770618' }]}>
                 <Text style={styles.featureEmoji}>📖</Text>
               </View>
               <Text style={styles.featureTitle}>Original Language</Text>
               <Text style={styles.featureDesc}>Greek, Hebrew & Aramaic with Strong's numbers</Text>
             </View>
             <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: '#2c5f8a18' }]}>
+              <View style={[styles.featureIcon, { backgroundColor: '#0f766e18' }]}>
                 <Text style={styles.featureEmoji}>📜</Text>
               </View>
               <Text style={styles.featureTitle}>Historical Context</Text>
               <Text style={styles.featureDesc}>Cultural & biblical background explained</Text>
             </View>
             <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: '#3a7d4418' }]}>
+              <View style={[styles.featureIcon, { backgroundColor: '#05966918' }]}>
                 <Text style={styles.featureEmoji}>🕊</Text>
               </View>
               <Text style={styles.featureTitle}>Life Application</Text>
@@ -130,15 +130,15 @@ export default function HomeScreen({ onSearch }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f1e8',
+    backgroundColor: '#f0fdfa',
   },
   headerBar: {
-    backgroundColor: '#0d1b2a',
+    backgroundColor: '#0f766e',
     paddingTop: 14,
     paddingBottom: 14,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#c9952e',
+    borderBottomColor: '#f59e0b',
   },
   logoWrap: {
     flexDirection: 'row',
@@ -149,24 +149,24 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#c9952e20',
+    backgroundColor: '#f59e0b20',
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoCross: {
     fontSize: 20,
-    color: '#c9952e',
+    color: '#fbbf24',
   },
   logoTitle: {
     fontFamily: 'serif',
     fontSize: 20,
     fontWeight: '700',
-    color: '#d4af37',
+    color: '#fbbf24',
     letterSpacing: 0.3,
   },
   logoSub: {
     fontSize: 10,
-    color: 'rgba(212,175,55,0.55)',
+    color: 'rgba(251,191,36,0.55)',
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginTop: 1,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   },
   heroSmall: {
     fontSize: 12,
-    color: '#8c7d6a',
+    color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 3,
     marginBottom: 8,
@@ -194,26 +194,26 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
     fontSize: 30,
     fontWeight: '600',
-    color: '#1a1612',
+    color: '#1c1917',
     textAlign: 'center',
     lineHeight: 40,
   },
   heroItalic: {
     fontStyle: 'italic',
-    color: '#c9952e',
+    color: '#d97706',
   },
   heroSpan: {
-    color: '#0d1b2a',
+    color: '#0f766e',
     fontWeight: '700',
   },
   searchCard: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
     borderRadius: 20,
     padding: 20,
     width: '100%',
-    shadowColor: '#0d1b2a',
+    shadowColor: '#0f766e',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   searchLabel: {
     fontSize: 11,
-    color: '#8c7d6a',
+    color: '#6b7280',
     letterSpacing: 2,
     fontWeight: '700',
     marginBottom: 12,
@@ -233,9 +233,9 @@ const styles = StyleSheet.create({
   inputWrap: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
     borderRadius: 14,
-    backgroundColor: '#faf7f2',
+    backgroundColor: '#f9fafb',
     overflow: 'hidden',
   },
   searchInput: {
@@ -243,27 +243,27 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     fontSize: 16,
     fontFamily: 'serif',
-    color: '#1a1612',
+    color: '#1c1917',
   },
   searchBtn: {
-    backgroundColor: '#0d1b2a',
+    backgroundColor: '#0f766e',
     borderRadius: 14,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#0d1b2a',
+    shadowColor: '#0f766e',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   searchBtnIcon: {
-    color: '#c9952e',
+    color: '#fbbf24',
     fontSize: 14,
   },
   searchBtnText: {
-    color: '#d4af37',
+    color: '#fbbf24',
     fontWeight: '700',
     fontSize: 14,
     fontFamily: 'serif',
@@ -272,11 +272,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#f0e8d4',
+    borderTopColor: '#f3f4f6',
   },
   quickLabel: {
     fontSize: 10,
-    color: '#8c7d6a',
+    color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: 8,
@@ -288,15 +288,15 @@ const styles = StyleSheet.create({
   },
   quickBtn: {
     borderWidth: 1,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    backgroundColor: '#faf7f2',
+    backgroundColor: '#f9fafb',
   },
   quickBtnText: {
     fontSize: 12,
-    color: '#5c4e3d',
+    color: '#4b5563',
     fontFamily: 'serif',
   },
   features: {
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e8dfc8',
+    borderColor: '#e5e7eb',
   },
   featureIcon: {
     width: 38,
@@ -329,13 +329,13 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
     fontSize: 12,
     fontWeight: '700',
-    color: '#1a1612',
+    color: '#1c1917',
     textAlign: 'center',
     marginBottom: 3,
   },
   featureDesc: {
     fontSize: 10,
-    color: '#6b5d4a',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 14,
   },
@@ -348,20 +348,20 @@ const styles = StyleSheet.create({
   footerDivider: {
     width: 50,
     height: 2,
-    backgroundColor: '#c9952e',
+    backgroundColor: '#d97706',
     borderRadius: 1,
     marginBottom: 14,
   },
   footerText: {
     fontSize: 13,
-    color: '#6b5d4a',
+    color: '#6b7280',
     fontStyle: 'italic',
     textAlign: 'center',
     fontFamily: 'serif',
   },
   footerRef: {
     fontSize: 11,
-    color: '#8c7d6a',
+    color: '#9ca3af',
     marginTop: 4,
   },
 });

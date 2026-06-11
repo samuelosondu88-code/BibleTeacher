@@ -83,7 +83,7 @@ export default function ChatSection({ verse }: Props) {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: isQuota
-          ? `The AI chat is currently unavailable because your API quota has been reached. The verse analysis and explanation above are still available. You can try again later or add more credits to your OpenAI account.`
+          ? `The AI chat is currently unavailable because your API quota has been reached. The verse analysis and explanation above are still available. You can try again later.`
           : `Sorry, I had trouble answering that. ${err.message || 'Please try again.'}`,
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -149,7 +149,7 @@ export default function ChatSection({ verse }: Props) {
               value={input}
               onChangeText={setInput}
               placeholder="Ask a follow-up question…"
-              placeholderTextColor="#9a8c78"
+              placeholderTextColor="#9ca3af"
               onSubmitEditing={() => sendMessage()}
               returnKeyType="send"
               editable={!isLoading}
@@ -186,30 +186,30 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: 24,
-    shadowColor: '#0d1b2a',
+    shadowColor: '#0f766e',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 12,
     elevation: 3,
   },
   header: {
-    backgroundColor: '#0d1b2a',
+    backgroundColor: '#0f766e',
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#c9952e',
+    borderBottomColor: '#f59e0b',
   },
   headerIconWrap: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#c9952e18',
+    backgroundColor: '#f59e0b20',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -220,11 +220,11 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
     fontSize: 16,
     fontWeight: '700',
-    color: '#d4af37',
+    color: '#fbbf24',
   },
   headerSub: {
     fontSize: 12,
-    color: 'rgba(212,175,55,0.5)',
+    color: 'rgba(251,191,36,0.5)',
     marginTop: 1,
   },
   chatContainer: {
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   messageList: {
     maxHeight: 360,
-    backgroundColor: '#faf7f2',
+    backgroundColor: '#f9fafb',
   },
   messageListContent: {
     padding: 16,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   userBubble: {
-    backgroundColor: '#0d1b2a',
+    backgroundColor: '#0f766e',
     alignSelf: 'flex-end',
     borderBottomRightRadius: 4,
   },
@@ -253,15 +253,15 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
   },
   userText: {
-    color: '#f5e9c0',
+    color: '#fef3c7',
     fontSize: 15,
     lineHeight: 22,
   },
   assistantText: {
-    color: '#2c2418',
+    color: '#1c1917',
     fontSize: 15,
     lineHeight: 22,
   },
@@ -270,13 +270,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
     gap: 5,
-    backgroundColor: '#faf7f2',
+    backgroundColor: '#f9fafb',
   },
   thinkingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#c9952e',
+    backgroundColor: '#d97706',
   },
   dot2: { opacity: 0.5 },
   dot3: { opacity: 0.2 },
@@ -287,24 +287,24 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#f0e8d4',
+    borderTopColor: '#f3f4f6',
   },
   inputWrap: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
     borderRadius: 14,
-    backgroundColor: '#faf7f2',
+    backgroundColor: '#f9fafb',
     overflow: 'hidden',
   },
   input: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#1a1612',
+    color: '#1c1917',
   },
   sendBtn: {
-    backgroundColor: '#0d1b2a',
+    backgroundColor: '#0f766e',
     borderRadius: 14,
     paddingHorizontal: 20,
     justifyContent: 'center',
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendBtnText: {
-    color: '#d4af37',
+    color: '#fbbf24',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -321,13 +321,13 @@ const styles = StyleSheet.create({
     padding: 12,
     paddingTop: 8,
     paddingBottom: 14,
-    backgroundColor: '#faf7f2',
+    backgroundColor: '#f9fafb',
     borderTopWidth: 1,
-    borderTopColor: '#f0e8d4',
+    borderTopColor: '#f3f4f6',
   },
   suggLabel: {
     fontSize: 10,
-    color: '#8c7d6a',
+    color: '#6b7280',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     marginBottom: 8,
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   },
   suggBtn: {
     borderWidth: 1,
-    borderColor: '#ddd0b8',
+    borderColor: '#d1d5db',
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 5,
@@ -347,6 +347,6 @@ const styles = StyleSheet.create({
   },
   suggBtnText: {
     fontSize: 12,
-    color: '#5c4e3d',
+    color: '#4b5563',
   },
 });
