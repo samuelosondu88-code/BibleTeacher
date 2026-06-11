@@ -47,9 +47,8 @@ export default function HomeScreen({ onSearch }: Props) {
             <Text style={styles.heroSpan}>Deeply & Clearly</Text>
           </Text>
           <Text style={styles.heroSub}>
-            Enter any Bible verse or reference. BibleTeecha uses AI to reveal
-            the original language, historical context, and practical wisdom
-            within every passage.
+            Enter any Bible verse or reference. BibleTeecha reveals the original
+            language, historical context, and practical wisdom within every passage.
           </Text>
 
           <View style={styles.searchCard}>

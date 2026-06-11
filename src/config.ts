@@ -1,9 +1,8 @@
-// Bible Teacher - Configuration
-// IMPORTANT: Replace with your own OpenAI API key
-// You can get one at https://platform.openai.com/api-keys
+// BibleTeecha - Configuration
+// Get a FREE Gemini API key at https://aistudio.google.com/app/apikey
+// No credit card needed — 60 requests/minute for free
 const CONFIG = {
-  OPENAI_API_KEY: '',
-  OPENAI_MODEL: 'gpt-4o-mini',
+  GEMINI_API_KEY: '',
   BIBLE_API_URL: 'https://bible-api.com',
   BIBLE_TRANSLATION: 'kjv',
 };

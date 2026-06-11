@@ -1,65 +1,69 @@
 import CONFIG from '../config';
 import { VerseData } from '../types';
 
-interface AIMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
+function buildGeminiUrl(): string {
+  return `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${CONFIG.GEMINI_API_KEY}`;
 }
 
-async function callAI(
+async function callGemini(
   prompt: string,
   systemContext: string,
-  maxTokens = 2000,
 ): Promise<string> {
-  if (!CONFIG.OPENAI_API_KEY) {
+  if (!CONFIG.GEMINI_API_KEY) {
     throw new Error(
-      'Add your OpenAI API key in src/config.ts',
+      'Get a free API key at https://aistudio.google.com/app/apikey then add it in src/config.ts',
     );
   }
 
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemContext },
-    { role: 'user', content: prompt },
-  ];
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${CONFIG.OPENAI_API_KEY}`,
+  const body = {
+    system_instruction: {
+      parts: [{ text: systemContext }],
     },
-    body: JSON.stringify({
-      model: CONFIG.OPENAI_MODEL,
-      messages,
-      max_tokens: maxTokens,
+    contents: [
+      {
+        parts: [{ text: prompt }],
+      },
+    ],
+    generationConfig: {
       temperature: 0.7,
-    }),
+      maxOutputTokens: 2800,
+    },
+  };
+
+  const response = await fetch(buildGeminiUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     const msg = errorData.error?.message || `API error ${response.status}`;
-    if (response.status === 429 || response.status === 402) {
-      throw new Error(
-        'API quota exceeded. The AI features need a paid OpenAI plan. The verse text is still displayed below.',
-      );
-    }
     throw new Error(msg);
   }
 
   const data = await response.json();
-  const result = data.choices?.[0]?.message?.content?.trim();
-
-  if (!result) {
-    throw new Error('Empty response from AI. Please try again.');
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!text) {
+    throw new Error('Empty response from AI.');
   }
+  return text;
+}
 
-  return result;
+function extractJSON(text: string): any {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+  const cleaned = jsonMatch[0].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\t/g, '  ');
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
 }
 
 export function buildSystemPrompt(verse: VerseData): string {
   return `You are BibleTeecha, an expert AI Bible study assistant. You have deep knowledge of:
-- Biblical Greek, Hebrew, and Aramaic
+- Biblical Greek, Hebrew, and Aramaic (including Strong's Concordance numbers)
 - Historical and cultural context of the Bible
 - Theological interpretation across Christian traditions
 - Practical Christian living
@@ -70,39 +74,24 @@ Verse text: "${verse.text}"
 Keep explanations clear, warm, and accessible to all believers including new Christians.`;
 }
 
-function extractJSON(text: string): any {
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) return null;
-  const cleaned = jsonMatch[0]
-    .replace(/\\n/g, '\n')
-    .replace(/\\"/g, '"')
-    .replace(/\\t/g, '  ');
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    return null;
-  }
-}
-
 export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const prompt = `Analyze ${verse.reference} ("${verse.text}") and respond as valid JSON. Use this structure:
+  const prompt = `Analyze ${verse.reference} ("${verse.text}") and respond as valid JSON only. Use exactly this structure:
 
 {
   "simple_meaning": "2-3 paragraphs explaining this verse in simple clear language...",
-  "original_language": "For each key word (2-5 words):\\n**Word:** [English]\\n**Strong's Number:** [e.g. G26]\\n**Original:** [Greek/Hebrew/Aramaic script]\\n**Transliteration:** [pronunciation]\\n**Root:** [root word and meaning]\\n**Word Type:** [grammatical details]\\n**Meaning:** [lexical meaning in context]",
+  "original_language": "For each key word (2-5 words):\\n**Word:** [English]\\n**Strong's Number:** [e.g. G26 or H7225]\\n**Original:** [word in Greek/Hebrew/Aramaic script]\\n**Transliteration:** [pronunciation]\\n**Root:** [root word and meaning]\\n**Word Type:** [grammatical details]\\n**Meaning:** [lexical meaning in context]",
   "historical_context": "Author, date, audience, purpose, surrounding context, and historical background in 2-3 paragraphs",
   "life_application": "3-4 practical, actionable applications for modern Christians"
 }
 
-Return ONLY valid JSON. No markdown, no code fences, no extra text.`;
+Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
 
   try {
-    const result = await callAI(prompt, systemPrompt, 2800);
+    const result = await callGemini(prompt, systemPrompt);
     const parsed = extractJSON(result);
-
     if (parsed) {
       return {
         meaning: parsed.simple_meaning || parsed.meaning || '',
@@ -111,28 +100,11 @@ Return ONLY valid JSON. No markdown, no code fences, no extra text.`;
         application: parsed.life_application || parsed.application || '',
       };
     }
-
-    // JSON extraction failed — use raw text as simple meaning
-    return {
-      meaning: result || '',
-      language: '',
-      context: '',
-      application: '',
-    };
+    return { meaning: result || '', language: '', context: '', application: '' };
   } catch (err: any) {
-    const isQuota = err.message?.toLowerCase().includes('quota') ||
-      err.message?.toLowerCase().includes('limit') ||
-      err.message?.toLowerCase().includes('429');
-    if (isQuota) {
-      return {
-        meaning: '**API Quota Reached**\n\nTo see the AI-powered Bible study features, add credits to your OpenAI account or use a different API key in `src/config.ts`. The verse text is displayed above.',
-        language: '**API Quota Reached**\n\nOriginal language analysis requires an active OpenAI API key with available credits.',
-        context: '**API Quota Reached**\n\nHistorical context requires an active OpenAI API key with available credits.',
-        application: '**API Quota Reached**\n\nLife application requires an active OpenAI API key with available credits.',
-      };
-    }
+    const msg = err.message || '';
     return {
-      meaning: `**Analysis unavailable**\n\n${err.message || 'Something went wrong. Please try again.'}`,
+      meaning: `**Analysis unavailable**\n\n${msg}`,
       language: '',
       context: '',
       application: '',
@@ -145,50 +117,53 @@ export async function chatWithAI(
   question: string,
   history: { role: 'user' | 'assistant'; content: string }[],
 ): Promise<string> {
+  if (!CONFIG.GEMINI_API_KEY) {
+    throw new Error(
+      'Get a free API key at https://aistudio.google.com/app/apikey then add it in src/config.ts',
+    );
+  }
+
   const systemPrompt = `You are BibleTeecha, an expert AI Bible study assistant focused specifically on ${verse.reference}.
 Verse text: "${verse.text}"
 Keep all answers focused on this verse. Be insightful, warm, and scholarly yet accessible.
 Answer in 2-4 paragraphs. Use plain language. Mention original language insights when relevant.`;
 
-  const messages: AIMessage[] = [
-    { role: 'system', content: systemPrompt },
-  ];
+  const contents: any[] = [];
 
   for (const msg of history) {
-    messages.push({ role: msg.role, content: msg.content });
+    const role = msg.role === 'assistant' ? 'model' : 'user';
+    contents.push({ role, parts: [{ text: msg.content }] });
   }
 
-  messages.push({ role: 'user', content: question });
+  contents.push({ role: 'user', parts: [{ text: question }] });
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${CONFIG.OPENAI_API_KEY}`,
+  const body = {
+    system_instruction: {
+      parts: [{ text: systemPrompt }],
     },
-    body: JSON.stringify({
-      model: CONFIG.OPENAI_MODEL,
-      messages,
-      max_tokens: 1000,
+    contents,
+    generationConfig: {
       temperature: 0.7,
-    }),
+      maxOutputTokens: 1000,
+    },
+  };
+
+  const response = await fetch(buildGeminiUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    const msg = errorData.error?.message || 'AI request failed. Please try again.';
-    if (response.status === 429) {
-      throw new Error('Chat is temporarily unavailable due to API limits. Please try again later.');
-    }
+    const msg = errorData.error?.message || 'AI request failed.';
     throw new Error(msg);
   }
 
   const data = await response.json();
-  const result = data.choices?.[0]?.message?.content?.trim();
-
-  if (!result) {
-    throw new Error('Empty response from AI. Please try again.');
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!text) {
+    throw new Error('Empty response from AI.');
   }
-
-  return result;
+  return text;
 }
