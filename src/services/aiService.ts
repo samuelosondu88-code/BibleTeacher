@@ -15,13 +15,12 @@ async function callGemini(
     );
   }
 
+  const fullPrompt = `${systemContext}\n\n${prompt}`;
+
   const body = {
-    systemInstruction: {
-      parts: [{ text: systemContext }],
-    },
     contents: [
       {
-        parts: [{ text: prompt }],
+        parts: [{ text: fullPrompt }],
       },
     ],
     generationConfig: {
@@ -37,8 +36,12 @@ async function callGemini(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const msg = errorData.error?.message || `API error ${response.status}`;
+    const errorText = await response.text().catch(() => '');
+    let msg = `API error ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      msg = errorData.error?.message || msg;
+    } catch {}
     throw new Error(msg);
   }
 
@@ -128,7 +131,7 @@ Verse text: "${verse.text}"
 Keep all answers focused on this verse. Be insightful, warm, and scholarly yet accessible.
 Answer in 2-4 paragraphs. Use plain language. Mention original language insights when relevant.`;
 
-  const contents: any[] = [];
+  const contents: any[] = [{ role: 'user', parts: [{ text: systemPrompt }] }];
 
   for (const msg of history) {
     const role = msg.role === 'assistant' ? 'model' : 'user';
@@ -138,9 +141,6 @@ Answer in 2-4 paragraphs. Use plain language. Mention original language insights
   contents.push({ role: 'user', parts: [{ text: question }] });
 
   const body = {
-    systemInstruction: {
-      parts: [{ text: systemPrompt }],
-    },
     contents,
     generationConfig: {
       temperature: 0.7,
@@ -155,8 +155,12 @@ Answer in 2-4 paragraphs. Use plain language. Mention original language insights
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const msg = errorData.error?.message || 'AI request failed.';
+    const errorText = await response.text().catch(() => '');
+    let msg = 'AI request failed.';
+    try {
+      const errorData = JSON.parse(errorText);
+      msg = errorData.error?.message || msg;
+    } catch {}
     throw new Error(msg);
   }
 
