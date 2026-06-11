@@ -16,7 +16,7 @@ async function callGemini(
   }
 
   const body = {
-    system_instruction: {
+    systemInstruction: {
       parts: [{ text: systemContext }],
     },
     contents: [
@@ -138,7 +138,7 @@ Answer in 2-4 paragraphs. Use plain language. Mention original language insights
   contents.push({ role: 'user', parts: [{ text: question }] });
 
   const body = {
-    system_instruction: {
+    systemInstruction: {
       parts: [{ text: systemPrompt }],
     },
     contents,
