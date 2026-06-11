@@ -4,57 +4,140 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Light source glow -->
+    <!-- Drop shadow -->
     <path
-        android:fillColor="#f5e9c0"
-        android:pathData="M54,18 m-9,0 a9,9 0,1,1 18,0 a9,9 0,1,1 -18,0" />
-    <!-- Light source center -->
+        android:fillColor="#0d5c56"
+        android:pathData="M24,80 L84,80 L84,86 L24,86 Z"
+        android:alpha="0.25" />
     <path
-        android:fillColor="#ffffff"
-        android:pathData="M54,18 m-4,0 a4,4 0,1,1 8,0 a4,4 0,1,1 -8,0" />
-    <!-- Light rays -->
+        android:fillColor="#0d5c56"
+        android:pathData="M24,80 L29,75 L89,75 L84,80 Z"
+        android:alpha="0.15" />
+    <!-- Book spine -->
     <path
-        android:fillColor="#f5e9c0"
-        android:pathData="M54,28 L14,60 L22,60 Z" />
+        android:fillColor="#0b5e56"
+        android:pathData="M19,25 L24,20 L24,75 L19,80 Z" />
+    <!-- Spine highlight -->
     <path
-        android:fillColor="#e2c97e"
-        android:pathData="M54,28 L34,64 L42,64 Z" />
+        android:fillColor="#0d7a6e"
+        android:pathData="M19,25 L21,23 L21,78 L19,80 Z" />
+    <!-- Right page edge (3D thickness) -->
     <path
-        android:fillColor="#e2c97e"
-        android:pathData="M54,28 L60,64 L68,64 Z" />
+        android:fillColor="#d4af37"
+        android:pathData="M79,20 L84,25 L84,75 L79,80 Z" />
+    <!-- Bottom page edge (3D thickness) -->
     <path
-        android:fillColor="#f5e9c0"
-        android:pathData="M54,28 L80,60 L90,60 Z" />
-    <!-- Open Bible - left page -->
+        android:fillColor="#d97706"
+        android:pathData="M24,75 L79,80 L84,75 L29,70 Z" />
+    <!-- Page edge highlight -->
     <path
-        android:fillColor="#c9a84c"
-        android:pathData="M26,58 L50,58 L48,90 L24,88 Z" />
-    <!-- Open Bible - right page -->
+        android:fillColor="#e8c84a"
+        android:pathData="M79,20 L81,22 L81,78 L79,80 Z" />
+    <!-- Top page edge (3D) -->
     <path
-        android:fillColor="#cca44d"
-        android:pathData="M50,58 L76,58 L78,88 L52,90 Z" />
-    <!-- Spine -->
+        android:fillColor="#c9952e"
+        android:pathData="M24,20 L29,15 L84,20 L79,25 Z" />
+    <!-- Top edge highlight -->
     <path
-        android:fillColor="#a07820"
-        android:pathData="M48,58 L52,58 L52,90 L48,90 Z" />
-    <!-- Page lines - left -->
+        android:fillColor="#e0b840"
+        android:pathData="M24,20 L26,18 L82,20 L79,22 Z" />
+    <!-- Page lines on right edge -->
     <path
-        android:fillColor="#a07820"
-        android:pathData="M30,67 L47,67" />
+        android:fillColor="#c9952e"
+        android:pathData="M80,26 L83,26"
+        android:strokeWidth="0.5" />
     <path
-        android:fillColor="#a07820"
-        android:pathData="M30,74 L47,74" />
+        android:fillColor="#c9952e"
+        android:pathData="M80,34 L83,34"
+        android:strokeWidth="0.5" />
     <path
-        android:fillColor="#a07820"
-        android:pathData="M30,81 L47,81" />
-    <!-- Page lines - right -->
+        android:fillColor="#c9952e"
+        android:pathData="M80,42 L83,42"
+        android:strokeWidth="0.5" />
     <path
-        android:fillColor="#a07820"
-        android:pathData="M53,67 L72,67" />
+        android:fillColor="#c9952e"
+        android:pathData="M80,50 L83,50"
+        android:strokeWidth="0.5" />
     <path
-        android:fillColor="#a07820"
-        android:pathData="M53,74 L72,74" />
+        android:fillColor="#c9952e"
+        android:pathData="M80,58 L83,58"
+        android:strokeWidth="0.5" />
     <path
-        android:fillColor="#a07820"
-        android:pathData="M53,81 L72,81" />
+        android:fillColor="#c9952e"
+        android:pathData="M80,66 L83,66"
+        android:strokeWidth="0.5" />
+    <path
+        android:fillColor="#c9952e"
+        android:pathData="M80,72 L83,72"
+        android:strokeWidth="0.5" />
+    <!-- Page lines on bottom edge -->
+    <path
+        android:fillColor="#c9952e"
+        android:pathData="M30,72 L32,77"
+        android:strokeWidth="0.5" />
+    <path
+        android:fillColor="#c9952e"
+        android:pathData="M40,73 L42,78"
+        android:strokeWidth="0.5" />
+    <path
+        android:fillColor="#c9952e"
+        android:pathData="M50,74 L52,79"
+        android:strokeWidth="0.5" />
+    <path
+        android:fillColor="#c9952e"
+        android:pathData="M60,75 L62,80"
+        android:strokeWidth="0.5" />
+    <path
+        android:fillColor="#c9952e"
+        android:pathData="M70,76 L72,81"
+        android:strokeWidth="0.5" />
+    <!-- Front cover -->
+    <path
+        android:fillColor="#0f766e"
+        android:pathData="M24,20 L79,20 L84,25 L84,75 L79,80 L24,75 L19,80 L19,25 Z" />
+    <!-- Cover leather texture - top highlight -->
+    <path
+        android:fillColor="#118a7a"
+        android:pathData="M24,20 L79,20 L84,25 L84,30 L24,25 Z"
+        android:alpha="0.5" />
+    <!-- Cover leather texture - bottom shadow -->
+    <path
+        android:fillColor="#0a5c50"
+        android:pathData="M24,65 L79,70 L84,75 L79,80 L24,75 L19,80 L19,75 Z"
+        android:alpha="0.4" />
+    <!-- Cover border frame -->
+    <path
+        android:fillColor="none"
+        android:strokeColor="#fbbf24"
+        android:strokeWidth="1.2"
+        android:pathData="M28,26 L75,26 L80,30 L80,70 L75,74 L28,70 L23,74 L23,30 Z" />
+    <!-- Cover inner border -->
+    <path
+        android:fillColor="none"
+        android:strokeColor="#fbbf24"
+        android:strokeWidth="0.5"
+        android:pathData="M31,29 L72,29 L77,33 L77,67 L72,71 L31,67 L26,71 L26,33 Z"
+        android:alpha="0.5" />
+    <!-- Cross - vertical beam -->
+    <path
+        android:fillColor="#fbbf24"
+        android:pathData="M47,35 L47,62 L53,62 L53,35 Z" />
+    <!-- Cross - horizontal beam -->
+    <path
+        android:fillColor="#fbbf24"
+        android:pathData="M39,44 L61,44 L61,50 L39,50 Z" />
+    <!-- Cross highlight -->
+    <path
+        android:fillColor="#fcd34d"
+        android:pathData="M49,37 L51,37 L51,60 L49,60 Z"
+        android:alpha="0.5" />
+    <!-- Bookmark ribbon -->
+    <path
+        android:fillColor="#d97706"
+        android:pathData="M52,75 L56,75 L56,95 L50,92 Z" />
+    <!-- Ribbon highlight -->
+    <path
+        android:fillColor="#f59e0b"
+        android:pathData="M54,75 L56,75 L56,95 L54,94 Z"
+        android:alpha="0.5" />
 </vector>
