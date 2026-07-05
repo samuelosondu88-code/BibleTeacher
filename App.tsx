@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, Alert, StyleSheet } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import LoadingModal from './src/components/LoadingModal';
 import { VerseData } from './src/types';
@@ -22,7 +22,7 @@ export default function App() {
       setVerse(verseData);
       setScreen('results');
     } catch (err: any) {
-      setLoadingStep(err.message || 'Verse not found. Please try again.');
+      Alert.alert('Verse Not Found', err.message || 'Please try a different reference.');
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,31 +33,40 @@ export default function ResultsScreen({ verse, onBack }: Props) {
   });
   const [loading, setLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState('Retrieving verse text…');
+  const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
-    loadContent();
-  }, [verse.reference]);
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     setLoading(true);
+    setHasError(false);
+    setLoadingStep('Generating AI-powered Bible study…');
 
     try {
       const systemPrompt = buildSystemPrompt(verse);
-
-      setLoadingStep('Generating AI-powered Bible study…');
       const analysis = await getCombinedAnalysis(verse, systemPrompt);
       setContent(analysis);
       setLoading(false);
     } catch (err: any) {
       setContent({
-        meaning: err.message || 'An error occurred.',
+        meaning: `**Analysis unavailable**\n\n${err.message || 'An error occurred.'}`,
         language: '',
         context: '',
         application: '',
       });
+      setHasError(true);
       setLoading(false);
     }
-  };
+  }, [verse]);
+
+  useEffect(() => {
+    loadContent();
+  }, [loadContent]);
+
+  const sections = [
+    { title: 'Simple Meaning', icon: '☀', key: 'meaning' as const, lines: 3 },
+    { title: 'Original Language Insights', icon: 'α', key: 'language' as const, lines: 4 },
+    { title: 'Historical & Biblical Context', icon: '📜', key: 'context' as const, lines: 3 },
+    { title: 'Life Application', icon: '🕊', key: 'application' as const, lines: 3 },
+  ];
 
   return (
     <View style={styles.container}>
@@ -69,57 +78,39 @@ export default function ResultsScreen({ verse, onBack }: Props) {
           <Text style={styles.backBtnText}>New Search</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>BibleTeecha</Text>
-        <View style={styles.backBtn} />
+        <View style={styles.backBtn}>
+          {hasError && (
+            <TouchableOpacity onPress={loadContent}>
+              <Text style={styles.retryBtn}>↻</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <VerseCard verse={verse} />
 
-        <AccordionSection
-          title="Simple Meaning"
-          icon="☀"
-          defaultOpen={!loading && !!content.meaning}>
-          {loading && !content.meaning ? (
-            <SkeletonLoader lines={3} />
-          ) : (
-            renderMarkdown(content.meaning)
-          )}
-        </AccordionSection>
+        {sections.map(s => (
+          <AccordionSection
+            key={s.key}
+            title={s.title}
+            icon={s.icon}
+            defaultOpen={!loading && !!content[s.key]}>
+            {loading && !content[s.key] ? (
+              <SkeletonLoader lines={s.lines} />
+            ) : (
+              renderMarkdown(content[s.key])
+            )}
+          </AccordionSection>
+        ))}
 
-        <AccordionSection
-          title="Original Language Insights"
-          icon="α"
-          defaultOpen={!loading && !!content.language}>
-          {loading && !content.language ? (
-            <SkeletonLoader lines={4} />
-          ) : (
-            renderMarkdown(content.language)
-          )}
-        </AccordionSection>
+        {hasError && (
+          <TouchableOpacity style={styles.retryBar} onPress={loadContent}>
+            <Text style={styles.retryBarText}>↻ Tap to retry analysis</Text>
+          </TouchableOpacity>
+        )}
 
-        <AccordionSection
-          title="Historical & Biblical Context"
-          icon="📜"
-          defaultOpen={!loading && !!content.context}>
-          {loading && !content.context ? (
-            <SkeletonLoader lines={3} />
-          ) : (
-            renderMarkdown(content.context)
-          )}
-        </AccordionSection>
-
-        <AccordionSection
-          title="Life Application"
-          icon="🕊"
-          defaultOpen={!loading && !!content.application}>
-          {loading && !content.application ? (
-            <SkeletonLoader lines={3} />
-          ) : (
-            renderMarkdown(content.application)
-          )}
-        </AccordionSection>
-
-        {!loading && <ChatSection verse={verse} />}
+        {!loading && !hasError && <ChatSection verse={verse} />}
       </ScrollView>
 
       <LoadingModal visible={loading} step={loadingStep} />
@@ -158,6 +149,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  retryBtn: {
+    color: '#fbbf24',
+    fontSize: 20,
+    fontWeight: '700',
+    marginLeft: 'auto',
+  },
   headerTitle: {
     color: '#fbbf24',
     fontSize: 16,
@@ -170,5 +167,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+  },
+  retryBar: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    marginTop: 8,
+  },
+  retryBarText: {
+    color: '#0f766e',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
