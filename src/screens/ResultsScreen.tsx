@@ -11,7 +11,9 @@ import { VerseData, AIContent } from '../types';
 import {
   buildSystemPrompt,
   getCombinedAnalysis,
+  isQuotaError,
 } from '../services/aiService';
+import { Linking } from 'react-native';
 import VerseCard from '../components/VerseCard';
 import AccordionSection from '../components/AccordionSection';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -46,8 +48,13 @@ export default function ResultsScreen({ verse, onBack }: Props) {
       setContent(analysis);
       setLoading(false);
     } catch (err: any) {
+      const msg = err?.message || 'An error occurred.';
+      const isQuota = isQuotaError(err);
+      const displayMsg = isQuota
+        ? `**Free AI service unavailable**\n\nThe free API limit was reached. To continue:\n\n1. Go to **openrouter.ai/keys**\n2. Get a free API key (no credit card)\n3. Set it in **src/config.ts** (or as GitHub secret)\n\nThen tap retry below.`
+        : `**Analysis unavailable**\n\n${msg}\n\nTap retry to try again.`;
       setContent({
-        meaning: `**Analysis unavailable**\n\n${err.message || 'An error occurred.'}`,
+        meaning: displayMsg,
         language: '',
         context: '',
         application: '',

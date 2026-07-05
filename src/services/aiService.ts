@@ -1,41 +1,47 @@
 import CONFIG from '../config';
 import { VerseData } from '../types';
 
-function buildGeminiUrl(): string {
-  return `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${CONFIG.OPENAI_API_KEY}`;
-}
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-async function callGemini(
-  prompt: string,
-  systemContext: string,
+// Free models available on OpenRouter (no credit card needed)
+const MODELS = {
+  PRIMARY: 'meta-llama/llama-3.2-3b-instruct',
+  FALLBACK: 'google/gemini-2.0-flash-001',
+};
+
+async function callOpenRouter(
+  systemPrompt: string,
+  userPrompt: string,
+  options?: { maxTokens?: number; model?: string },
 ): Promise<string> {
   if (!CONFIG.OPENAI_API_KEY) {
     throw new Error(
-      'Get a free API key at https://aistudio.google.com/app/apikey then add it in src/config.ts',
+      'Get a free API key at https://openrouter.ai/keys then add it in src/config.ts',
     );
   }
 
-  const fullPrompt = `${systemContext}\n\n${prompt}`;
-
   const body = {
-    contents: [
-      {
-        parts: [{ text: fullPrompt }],
-      },
+    model: options?.model || MODELS.PRIMARY,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
     ],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 2800,
-    },
+    temperature: 0.7,
+    max_tokens: options?.maxTokens || 2800,
   };
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
-    const response = await fetch(buildGeminiUrl(), {
+    const response = await fetch(OPENROUTER_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${CONFIG.OPENAI_API_KEY}`,
+        'HTTP-Referer': 'https://bibleteecha.app',
+        'X-Title': 'BibleTeecha',
+      },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -45,13 +51,13 @@ async function callGemini(
       let msg = `API error ${response.status}`;
       try {
         const errorData = JSON.parse(errorText);
-        msg = errorData.error?.message || msg;
+        msg = errorData.error?.message || errorData.error || msg;
       } catch {}
       throw new Error(msg);
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const text = data.choices?.[0]?.message?.content?.trim();
     if (!text) {
       throw new Error('Empty response from AI.');
     }
@@ -63,23 +69,16 @@ async function callGemini(
 
 function extractJSON(text: string): any {
   let cleaned = text.trim();
-
-  // Remove markdown code fences if present
   cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-
-  // Try to extract a JSON object from anywhere in the text
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
-
   const raw = jsonMatch[0]
     .replace(/\\n/g, '\n')
     .replace(/\\"/g, '"')
     .replace(/\\t/g, '  ');
-
   try {
     return JSON.parse(raw);
   } catch {
-    // If first parse fails, try to fix common issues
     try {
       const fixed = raw
         .replace(/(['"])?([a-zA-Z_][a-zA-Z0-9_]*)(['"])?\s*:/g, '"$2":')
@@ -108,7 +107,7 @@ export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const prompt = `Analyze ${verse.reference} ("${verse.text}") and respond as valid JSON only. Use exactly this structure:
+  const userPrompt = `Analyze ${verse.reference} ("${verse.text}") and respond as valid JSON only. Use exactly this structure:
 
 {
   "simple_meaning": "2-3 paragraphs explaining this verse in simple clear language...",
@@ -119,33 +118,49 @@ export async function getCombinedAnalysis(
 
 Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
 
-  try {
-    const result = await callGemini(prompt, systemPrompt);
-    const parsed = extractJSON(result);
-    if (parsed) {
-      return {
-        meaning: parsed.simple_meaning || parsed.meaning || '',
-        language: parsed.original_language || parsed.language || '',
-        context: parsed.historical_context || parsed.context || '',
-        application: parsed.life_application || parsed.application || '',
-      };
+  // Try primary model first, fallback to secondary if it fails
+  const modelsToTry = [MODELS.PRIMARY, MODELS.FALLBACK];
+
+  for (let i = 0; i < modelsToTry.length; i++) {
+    try {
+      const result = await callOpenRouter(systemPrompt, userPrompt, {
+        model: modelsToTry[i],
+        maxTokens: 2800,
+      });
+      const parsed = extractJSON(result);
+      if (parsed) {
+        return {
+          meaning: parsed.simple_meaning || parsed.meaning || '',
+          language: parsed.original_language || parsed.language || '',
+          context: parsed.historical_context || parsed.context || '',
+          application: parsed.life_application || parsed.application || '',
+        };
+      }
+      // If JSON parsing failed but we have text, show it as meaning
+      if (result && i === modelsToTry.length - 1) {
+        return { meaning: result, language: '', context: '', application: '' };
+      }
+    } catch (err: any) {
+      // On last attempt, propagate the error
+      if (i === modelsToTry.length - 1) {
+        throw err;
+      }
     }
-    // Fallback: treat the entire response as the meaning
-    return {
-      meaning: result,
-      language: '',
-      context: '',
-      application: '',
-    };
-  } catch (err: any) {
-    const msg = err.message || 'Unknown error';
-    return {
-      meaning: `**Analysis unavailable**\n\n${msg}\n\nMake sure you have set your Gemini API key in the config. Get a free key at https://aistudio.google.com/app/apikey`,
-      language: '',
-      context: '',
-      application: '',
-    };
   }
+
+  throw new Error('All AI models failed.');
+}
+
+export function isQuotaError(err: any): boolean {
+  const msg = (err?.message || '').toLowerCase();
+  return (
+    msg.includes('quota') ||
+    msg.includes('429') ||
+    msg.includes('rate limit') ||
+    msg.includes('insufficient') ||
+    msg.includes('exceeded') ||
+    msg.includes('402')
+  );
 }
 
 export async function chatWithAI(
@@ -155,53 +170,44 @@ export async function chatWithAI(
 ): Promise<string> {
   if (!CONFIG.OPENAI_API_KEY) {
     throw new Error(
-      'Get a free API key at https://aistudio.google.com/app/apikey then add it in src/config.ts',
+      'Get a free API key at https://openrouter.ai/keys then add it in src/config.ts',
     );
   }
 
-  const contents: any[] = [];
-
-  // First message establishes the AI's role and the verse being studied
-  contents.push({
-    role: 'user',
-    parts: [{
-      text: `You are BibleTeecha, an AI Bible study assistant focused on ${verse.reference}.
+  const messages: { role: string; content: string }[] = [
+    {
+      role: 'system',
+      content: `You are BibleTeecha, an AI Bible study assistant focused on ${verse.reference}.
 Verse text: "${verse.text}"
-I will ask you questions about this verse. Keep all answers focused on it. Be insightful, warm, and accessible.
-Respond as a helpful Bible teacher.`
-    }],
-  });
+Answer questions about this verse. Be insightful, warm, and accessible.`,
+    },
+  ];
 
-  // Simulate the AI acknowledging its role
-  contents.push({
-    role: 'model',
-    parts: [{ text: `I am ready to answer your questions about ${verse.reference}. Please ask me anything about this verse.` }],
-  });
-
-  // Add conversation history
   for (const msg of history) {
-    const role = msg.role === 'assistant' ? 'model' : 'user';
-    contents.push({ role, parts: [{ text: msg.content }] });
+    messages.push({ role: msg.role, content: msg.content });
   }
 
-  // Add the current question
-  contents.push({ role: 'user', parts: [{ text: question }] });
+  messages.push({ role: 'user', content: question });
 
   const body = {
-    contents,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 1000,
-    },
+    model: MODELS.PRIMARY,
+    messages,
+    temperature: 0.7,
+    max_tokens: 1000,
   };
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
-    const response = await fetch(buildGeminiUrl(), {
+    const response = await fetch(OPENROUTER_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${CONFIG.OPENAI_API_KEY}`,
+        'HTTP-Referer': 'https://bibleteecha.app',
+        'X-Title': 'BibleTeecha',
+      },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -211,13 +217,13 @@ Respond as a helpful Bible teacher.`
       let msg = 'AI request failed.';
       try {
         const errorData = JSON.parse(errorText);
-        msg = errorData.error?.message || msg;
+        msg = errorData.error?.message || errorData.error || msg;
       } catch {}
       throw new Error(msg);
     }
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const text = data.choices?.[0]?.message?.content?.trim();
     if (!text) {
       throw new Error('Empty response from AI.');
     }

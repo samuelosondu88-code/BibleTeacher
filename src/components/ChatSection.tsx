@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { VerseData, ChatMessage } from '../types';
-import { chatWithAI } from '../services/aiService';
+import { chatWithAI, isQuotaError } from '../services/aiService';
 import { renderMarkdown } from '../utils/markdown';
 
 interface Props {
@@ -78,12 +78,12 @@ export default function ChatSection({ verse }: Props) {
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (err: any) {
-      const isQuota = err.message?.toLowerCase().includes('quota') || err.message?.toLowerCase().includes('limit');
+      const isQuota = isQuotaError(err);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: isQuota
-          ? `The AI chat is currently unavailable because your API quota has been reached. The verse analysis and explanation above are still available. You can try again later.`
+          ? `The free AI chat limit was reached.\n\nGet a free OpenRouter key at **openrouter.ai/keys** (no credit card), add it in **src/config.ts**, and try again.\n\nThe verse analysis above is still available.`
           : `Sorry, I had trouble answering that. ${err.message || 'Please try again.'}`,
       };
       setMessages(prev => [...prev, errorMessage]);
