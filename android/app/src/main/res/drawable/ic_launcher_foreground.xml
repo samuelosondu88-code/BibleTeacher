@@ -107,13 +107,11 @@
         android:alpha="0.4" />
     <!-- Cover border frame -->
     <path
-        android:fillColor="none"
         android:strokeColor="#fbbf24"
         android:strokeWidth="1.2"
         android:pathData="M28,26 L75,26 L80,30 L80,70 L75,74 L28,70 L23,74 L23,30 Z" />
     <!-- Cover inner border -->
     <path
-        android:fillColor="none"
         android:strokeColor="#fbbf24"
         android:strokeWidth="0.5"
         android:pathData="M31,29 L72,29 L77,33 L77,67 L72,71 L31,67 L26,71 L26,33 Z"
