@@ -75,18 +75,61 @@ function extractJSON(text: string): any {
     .replace(/\\n/g, '\n')
     .replace(/\\"/g, '"')
     .replace(/\\t/g, '  ');
-  try {
-    return JSON.parse(raw);
-  } catch {
-    try {
-      const fixed = raw
-        .replace(/(['"])?([a-zA-Z_][a-zA-Z0-9_]*)(['"])?\s*:/g, '"$2":')
-        .replace(/,\s*([}\]])/g, '$1');
-      return JSON.parse(fixed);
-    } catch {
-      return null;
-    }
+
+  const tryParse = (s: string) => {
+    try { return JSON.parse(s); } catch { return null; }
+  };
+
+  let parsed = tryParse(raw);
+  if (parsed) return parsed;
+
+  const fixed = raw
+    .replace(/(['"])?([a-zA-Z_][a-zA-Z0-9_]*)(['"])?\s*:/g, '"$2":')
+    .replace(/,\s*([}\]])/g, '$1');
+  parsed = tryParse(fixed);
+  if (parsed) return parsed;
+
+  const withStringValues = raw
+    .replace(/:\s*([^"{}\[\],\n]+)([,}\n])/g, ':"$1"$2')
+    .replace(/:\s*'([^']*)'/g, ':"$1"');
+  parsed = tryParse(withStringValues);
+  if (parsed) return parsed;
+
+  return null;
+}
+
+function detectSectionHeader(line: string): string | null {
+  const trimmed = line.trim();
+  if (trimmed.length > 120) return null;
+
+  const lower = trimmed.toLowerCase();
+
+  const stripped = lower
+    .replace(/^#+\s*/, '')
+    .replace(/^\d+[\.\)]\s*/, '')
+    .replace(/^\*+/, '')
+    .replace(/\*+$/, '')
+    .replace(/^\s*[-–—]\s*/, '')
+    .trim();
+
+  if (/^(simple\s+)?meaning/.test(stripped)) return 'meaning';
+  if (/^(original\s+)?language\s*(insight)?/.test(stripped)) return 'language';
+  if (/^(historical|biblical)\s*(\&|\sand\s)?\s*(context|background)/.test(stripped)) return 'context';
+  if (/^historical\b/.test(stripped)) return 'context';
+  if (/^life\s+application/.test(stripped)) return 'application';
+  if (/^application/.test(stripped)) return 'application';
+
+  if (/^1\.?\s*(simple\s+)?meaning/i.test(trimmed)) return 'meaning';
+  if (/^2\.?\s*(original\s+)?language/i.test(trimmed)) return 'language';
+  if (/^3\.?\s*(historical|biblical)/i.test(trimmed)) return 'context';
+  if (/^4\.?\s*(life\s+)?application/i.test(trimmed)) return 'application';
+
+  if (/^(meaning|language|context|application)\s*:/.test(stripped + ':')) {
+    const m = stripped.match(/^(meaning|language|context|application)/);
+    if (m) return m[1] === 'meaning' ? 'meaning' : m[1] === 'language' ? 'language' : m[1] === 'context' ? 'context' : 'application';
   }
+
+  return null;
 }
 
 function extractSectionsFromMarkdown(text: string): {
@@ -101,42 +144,9 @@ function extractSectionsFromMarkdown(text: string): {
   const sections: Record<string, string[]> = {};
 
   for (const line of lines) {
-    const lower = line.trim().toLowerCase();
-    if (
-      lower.includes('simple meaning') ||
-      lower.includes('**simple meaning**') ||
-      lower.match(/^\*\*?meaning\*\*?:?/) ||
-      lower.includes('simple_meaning')
-    ) {
-      currentSection = 'meaning';
-      continue;
-    }
-    if (
-      lower.includes('original language') ||
-      lower.includes('**original language**') ||
-      lower.includes('original_language') ||
-      lower.includes('language insight')
-    ) {
-      currentSection = 'language';
-      continue;
-    }
-    if (
-      lower.includes('historical context') ||
-      lower.includes('**historical context**') ||
-      lower.includes('historical_context') ||
-      lower.includes('historical & biblical') ||
-      lower.includes('biblical context')
-    ) {
-      currentSection = 'context';
-      continue;
-    }
-    if (
-      lower.includes('life application') ||
-      lower.includes('**life application**') ||
-      lower.includes('life_application') ||
-      lower.includes('application')
-    ) {
-      currentSection = 'application';
+    const header = detectSectionHeader(line);
+    if (header) {
+      currentSection = header;
       continue;
     }
     if (currentSection) {
@@ -166,11 +176,50 @@ Verse text: "${verse.text}"
 Keep explanations clear, warm, and accessible to all believers including new Christians.`;
 }
 
+function splitByNumberedSections(text: string): {
+  meaning: string; language: string; context: string; application: string;
+} | null {
+  const sections = { meaning: '', language: '', context: '', application: '' };
+  const lines = text.split('\n');
+  let current: string | null = null;
+  const map: Record<string, string[]> = {};
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const m = trimmed.match(/^\d+[\.\)]\s*(.+)/);
+    if (m) {
+      const heading = m[1].toLowerCase();
+      if (/meaning|explanation/.test(heading)) current = 'meaning';
+      else if (/language|greek|hebrew/.test(heading)) current = 'language';
+      else if (/context|historical|background/.test(heading)) current = 'context';
+      else if (/application|practical/.test(heading)) current = 'application';
+      else current = null;
+      continue;
+    }
+    if (current) {
+      if (!map[current]) map[current] = [];
+      map[current].push(line);
+    }
+  }
+
+  sections.meaning = (map.meaning || []).join('\n').trim();
+  sections.language = (map.language || []).join('\n').trim();
+  sections.context = (map.context || []).join('\n').trim();
+  sections.application = (map.application || []).join('\n').trim();
+
+  if (sections.meaning || sections.language || sections.context || sections.application) {
+    return sections;
+  }
+  return null;
+}
+
 export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const userPrompt = `Analyze ${verse.reference} ("${verse.text}") and respond as valid JSON only. Use exactly this structure:
+  const userPrompt = `You are analyzing ${verse.reference} ("${verse.text}").
+
+Respond with ONLY valid JSON using this exact structure (no other text, no markdown, no code fences):
 
 {
   "simple_meaning": "2-3 paragraphs explaining this verse in simple clear language...",
@@ -179,7 +228,7 @@ export async function getCombinedAnalysis(
   "life_application": "3-4 practical, actionable applications for modern Christians"
 }
 
-Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
+JSON:`;
 
   const modelsToTry = [MODELS.PRIMARY, MODELS.FALLBACK];
   let lastError: any = null;
@@ -188,21 +237,23 @@ Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
     try {
       const result = await callOpenRouter(systemPrompt, userPrompt, {
         model: modelsToTry[i],
-        maxTokens: 2800,
+        maxTokens: 3500,
       });
       const parsed = extractJSON(result);
       if (parsed) {
         return {
-          meaning: parsed.simple_meaning || parsed.meaning || '',
-          language: parsed.original_language || parsed.language || '',
-          context: parsed.historical_context || parsed.context || '',
-          application: parsed.life_application || parsed.application || '',
+          meaning: parsed.simple_meaning || parsed.meaning || parsed.Simple_Meaning || parsed['Simple Meaning'] || '',
+          language: parsed.original_language || parsed.language || parsed.Original_Language || parsed['Original Language'] || '',
+          context: parsed.historical_context || parsed.context || parsed.Historical_Context || parsed['Historical Context'] || parsed['Historical & Biblical Context'] || '',
+          application: parsed.life_application || parsed.application || parsed.Life_Application || parsed['Life Application'] || '',
         };
       }
       const sections = extractSectionsFromMarkdown(result);
-      if (sections.meaning) {
+      if (sections.meaning || sections.language || sections.context || sections.application) {
         return sections;
       }
+      const numbered = splitByNumberedSections(result);
+      if (numbered) { return numbered; }
       if (i === modelsToTry.length - 1) {
         return { meaning: result, language: '', context: '', application: '' };
       }

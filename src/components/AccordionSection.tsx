@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   Animated,
   StyleSheet,
 } from 'react-native';
@@ -41,7 +42,7 @@ export default function AccordionSection({
 
   const bodyHeight = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 600],
+    outputRange: [0, 2000],
   });
 
   const rotate = anim.interpolate({
@@ -66,7 +67,12 @@ export default function AccordionSection({
       </TouchableOpacity>
       <Animated.View
         style={[styles.body, { maxHeight: bodyHeight, opacity: anim }]}>
-        <View style={styles.content}>{children}</View>
+        <ScrollView
+          style={styles.scrollBody}
+          nestedScrollEnabled
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.content}>{children}</View>
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -120,6 +126,9 @@ const styles = StyleSheet.create({
   body: {
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
+  },
+  scrollBody: {
+    maxHeight: 2000,
   },
   content: {
     padding: 16,
