@@ -4,9 +4,14 @@ import { VerseData } from '../types';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const MODELS = {
-  PRIMARY: 'meta-llama/llama-3.3-70b-instruct:free',
-  FALLBACK: 'openrouter/free',
+  GEMINI: 'google/gemini-2.0-flash-exp:free',
+  MISTRAL: 'mistralai/mistral-7b-instruct:free',
+  LLAMA: 'meta-llama/llama-3.3-70b-instruct:free',
+  FREE: 'openrouter/free',
 };
+
+const ANALYSIS_MODELS = [MODELS.GEMINI, MODELS.MISTRAL, MODELS.LLAMA, MODELS.FREE];
+const CHAT_MODELS = [MODELS.GEMINI, MODELS.MISTRAL, MODELS.LLAMA, MODELS.FREE];
 
 async function callOpenRouter(
   systemPrompt: string,
@@ -20,7 +25,7 @@ async function callOpenRouter(
   }
 
   const body = {
-    model: options?.model || MODELS.PRIMARY,
+    model: options?.model || MODELS.GEMINI,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
@@ -213,32 +218,46 @@ function splitByNumberedSections(text: string): {
   return null;
 }
 
+function isSafetyRefusal(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes('user safety') ||
+    lower.includes('safe;') ||
+    lower.includes('i cannot') ||
+    lower.includes("i'm not able") ||
+    lower.includes('safety guidelines') ||
+    lower.includes('harmful content') ||
+    lower.includes('cannot fulfill') ||
+    lower.includes('cannot provide') ||
+    lower.includes('against guidelines') ||
+    lower.includes('unable to generate') ||
+    (lower.includes('sorry') && lower.includes('cannot'))
+  );
+}
+
 export async function getCombinedAnalysis(
   verse: VerseData,
   systemPrompt: string,
 ): Promise<{ meaning: string; language: string; context: string; application: string }> {
-  const userPrompt = `You are analyzing ${verse.reference} ("${verse.text}").
+  const userPrompt = `Analyze ${verse.reference} ("${verse.text}") and return ONLY valid JSON with these fields:
+"simple_meaning", "original_language", "historical_context", "life_application".
+No other text. No markdown. No code fences. JSON only.`;
 
-Respond with ONLY valid JSON using this exact structure (no other text, no markdown, no code fences):
-
-{
-  "simple_meaning": "2-3 paragraphs explaining this verse in simple clear language...",
-  "original_language": "For each key word (2-5 words):\n**Word:** [English]\n**Strong's Number:** [e.g. G26 or H7225]\n**Original:** [word in Greek/Hebrew/Aramaic script]\n**Transliteration:** [pronunciation]\n**Root:** [root word and meaning]\n**Word Type:** [grammatical details]\n**Meaning:** [lexical meaning in context]",
-  "historical_context": "Author, date, audience, purpose, surrounding context, and historical background in 2-3 paragraphs",
-  "life_application": "3-4 practical, actionable applications for modern Christians"
-}
-
-JSON:`;
-
-  const modelsToTry = [MODELS.PRIMARY, MODELS.FALLBACK];
+  const modelsToTry = ANALYSIS_MODELS;
   let lastError: any = null;
 
   for (let i = 0; i < modelsToTry.length; i++) {
     try {
       const result = await callOpenRouter(systemPrompt, userPrompt, {
         model: modelsToTry[i],
-        maxTokens: 3500,
+        maxTokens: 2800,
       });
+
+      if (isSafetyRefusal(result)) {
+        lastError = new Error('Model refused: ' + result.slice(0, 100));
+        continue;
+      }
+
       const parsed = extractJSON(result);
       if (parsed) {
         return {
@@ -265,7 +284,7 @@ JSON:`;
   const msg = (lastError?.message || '').toLowerCase();
   if (msg.includes('no endpoints') || msg.includes('free') || msg.includes('not found')) {
     throw new Error(
-      'The AI service is temporarily unavailable for free models. Your API key is valid but OpenRouter has no free endpoints available right now. Please try again later.',
+      'The AI service is temporarily unavailable for free models. Try again later.',
     );
   }
   throw lastError || new Error('All AI models failed.');
@@ -297,61 +316,71 @@ export async function chatWithAI(
     );
   }
 
-  const messages: { role: string; content: string }[] = [
-    {
-      role: 'system',
-      content: `You are BibleTeecha, an AI Bible study assistant focused on ${verse.reference}.
+  const systemMessage = {
+    role: 'system' as const,
+    content: `You are BibleTeecha, an AI Bible study assistant focused on ${verse.reference}.
 Verse text: "${verse.text}"
 Answer questions about this verse. Be insightful, warm, and accessible.`,
-    },
-  ];
-
-  for (const msg of history) {
-    messages.push({ role: msg.role, content: msg.content });
-  }
-
-  messages.push({ role: 'user', content: question });
-
-  const body = {
-    model: MODELS.PRIMARY,
-    messages,
-    temperature: 0.7,
-    max_tokens: 1000,
   };
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000);
+  const historyMessages = history.map(m => ({ role: m.role, content: m.content }));
+  const userMessage = { role: 'user' as const, content: question };
 
-  try {
-    const response = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${CONFIG.OPENAI_API_KEY}`,
-        'HTTP-Referer': 'https://bibleteecha.app',
-        'X-Title': 'BibleTeecha',
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
+  const modelsToTry = CHAT_MODELS;
+  let lastError: any = null;
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      let msg = 'AI request failed.';
-      try {
-        const errorData = JSON.parse(errorText);
-        msg = errorData.error?.message || errorData.error || msg;
-      } catch {}
-      throw new Error(msg);
+  for (const model of modelsToTry) {
+    const body = {
+      model,
+      messages: [systemMessage, ...historyMessages, userMessage],
+      temperature: 0.7,
+      max_tokens: 1000,
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    try {
+      const response = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${CONFIG.OPENAI_API_KEY}`,
+          'HTTP-Referer': 'https://bibleteecha.app',
+          'X-Title': 'BibleTeecha',
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        let msg = `Provider returned error`;
+        try {
+          const errorData = JSON.parse(errorText);
+          msg = errorData.error?.message || errorData.error || msg;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content?.trim();
+      if (!text) {
+        throw new Error('Empty response from AI.');
+      }
+
+      if (isSafetyRefusal(text)) {
+        lastError = new Error('Model refused: ' + text.slice(0, 100));
+        continue;
+      }
+
+      return text;
+    } catch (err: any) {
+      lastError = err;
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content?.trim();
-    if (!text) {
-      throw new Error('Empty response from AI.');
-    }
-    return text;
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  throw lastError || new Error('All AI chat models failed.');
 }
