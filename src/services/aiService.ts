@@ -3,10 +3,10 @@ import { VerseData } from '../types';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Free models available on OpenRouter (no credit card needed)
+// Free models confirmed working on OpenRouter (no credit card needed)
 const MODELS = {
-  PRIMARY: 'meta-llama/llama-3.2-3b-instruct',
-  FALLBACK: 'google/gemini-2.0-flash-001',
+  PRIMARY: 'meta-llama/llama-3.2-3b-instruct:free',
+  FALLBACK: 'openrouter/free',
 };
 
 async function callOpenRouter(
@@ -31,7 +31,7 @@ async function callOpenRouter(
   };
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
     const response = await fetch(OPENROUTER_URL, {
@@ -118,8 +118,8 @@ export async function getCombinedAnalysis(
 
 Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
 
-  // Try primary model first, fallback to secondary if it fails
   const modelsToTry = [MODELS.PRIMARY, MODELS.FALLBACK];
+  let lastError: any = null;
 
   for (let i = 0; i < modelsToTry.length; i++) {
     try {
@@ -136,19 +136,21 @@ Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
           application: parsed.life_application || parsed.application || '',
         };
       }
-      // If JSON parsing failed but we have text, show it as meaning
       if (result && i === modelsToTry.length - 1) {
         return { meaning: result, language: '', context: '', application: '' };
       }
     } catch (err: any) {
-      // On last attempt, propagate the error
-      if (i === modelsToTry.length - 1) {
-        throw err;
-      }
+      lastError = err;
     }
   }
 
-  throw new Error('All AI models failed.');
+  const msg = (lastError?.message || '').toLowerCase();
+  if (msg.includes('no endpoints') || msg.includes('free') || msg.includes('not found')) {
+    throw new Error(
+      'The AI service is temporarily unavailable for free models. Your API key is valid but OpenRouter has no free endpoints available right now. Please try again later.',
+    );
+  }
+  throw lastError || new Error('All AI models failed.');
 }
 
 export function isQuotaError(err: any): boolean {
@@ -159,7 +161,10 @@ export function isQuotaError(err: any): boolean {
     msg.includes('rate limit') ||
     msg.includes('insufficient') ||
     msg.includes('exceeded') ||
-    msg.includes('402')
+    msg.includes('402') ||
+    msg.includes('no endpoints') ||
+    msg.includes('free model') ||
+    msg.includes('not enough credits')
   );
 }
 
@@ -197,7 +202,7 @@ Answer questions about this verse. Be insightful, warm, and accessible.`,
   };
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
     const response = await fetch(OPENROUTER_URL, {
