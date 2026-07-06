@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { SafeAreaView, Alert, StyleSheet } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { SafeAreaView, Alert, BackHandler, StyleSheet } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import LoadingModal from './src/components/LoadingModal';
 import { VerseData } from './src/types';
@@ -32,6 +32,18 @@ export default function App() {
     setScreen('home');
     setVerse(null);
   }, []);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      if (screen === 'results') {
+        handleBack();
+        return true;
+      }
+      return false;
+    };
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [screen, handleBack]);
 
   return (
     <SafeAreaView style={styles.container}>

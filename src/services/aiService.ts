@@ -3,9 +3,8 @@ import { VerseData } from '../types';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-// Free models confirmed working on OpenRouter (no credit card needed)
 const MODELS = {
-  PRIMARY: 'meta-llama/llama-3.2-3b-instruct:free',
+  PRIMARY: 'meta-llama/llama-3.3-70b-instruct:free',
   FALLBACK: 'openrouter/free',
 };
 
@@ -90,6 +89,70 @@ function extractJSON(text: string): any {
   }
 }
 
+function extractSectionsFromMarkdown(text: string): {
+  meaning: string;
+  language: string;
+  context: string;
+  application: string;
+} {
+  const result = { meaning: '', language: '', context: '', application: '' };
+  const lines = text.split('\n');
+  let currentSection = '';
+  const sections: Record<string, string[]> = {};
+
+  for (const line of lines) {
+    const lower = line.trim().toLowerCase();
+    if (
+      lower.includes('simple meaning') ||
+      lower.includes('**simple meaning**') ||
+      lower.match(/^\*\*?meaning\*\*?:?/) ||
+      lower.includes('simple_meaning')
+    ) {
+      currentSection = 'meaning';
+      continue;
+    }
+    if (
+      lower.includes('original language') ||
+      lower.includes('**original language**') ||
+      lower.includes('original_language') ||
+      lower.includes('language insight')
+    ) {
+      currentSection = 'language';
+      continue;
+    }
+    if (
+      lower.includes('historical context') ||
+      lower.includes('**historical context**') ||
+      lower.includes('historical_context') ||
+      lower.includes('historical & biblical') ||
+      lower.includes('biblical context')
+    ) {
+      currentSection = 'context';
+      continue;
+    }
+    if (
+      lower.includes('life application') ||
+      lower.includes('**life application**') ||
+      lower.includes('life_application') ||
+      lower.includes('application')
+    ) {
+      currentSection = 'application';
+      continue;
+    }
+    if (currentSection) {
+      if (!sections[currentSection]) sections[currentSection] = [];
+      sections[currentSection].push(line);
+    }
+  }
+
+  result.meaning = (sections.meaning || []).join('\n').trim();
+  result.language = (sections.language || []).join('\n').trim();
+  result.context = (sections.context || []).join('\n').trim();
+  result.application = (sections.application || []).join('\n').trim();
+
+  return result;
+}
+
 export function buildSystemPrompt(verse: VerseData): string {
   return `You are BibleTeecha, an expert AI Bible study assistant. You have deep knowledge of:
 - Biblical Greek, Hebrew, and Aramaic (including Strong's Concordance numbers)
@@ -136,7 +199,11 @@ Return ONLY the JSON object. No markdown, no code fences, no extra text.`;
           application: parsed.life_application || parsed.application || '',
         };
       }
-      if (result && i === modelsToTry.length - 1) {
+      const sections = extractSectionsFromMarkdown(result);
+      if (sections.meaning) {
+        return sections;
+      }
+      if (i === modelsToTry.length - 1) {
         return { meaning: result, language: '', context: '', application: '' };
       }
     } catch (err: any) {
