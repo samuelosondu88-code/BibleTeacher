@@ -168,7 +168,7 @@ export function renderMarkdown(text: string): React.ReactNode[] {
   return elements;
 }
 
-const styles = {
+const styles: Record<string, any> = {
   paragraph: {
     fontSize: 16,
     lineHeight: 26,
@@ -183,17 +183,17 @@ const styles = {
     padding: 14,
     marginBottom: 12,
     overflow: 'hidden',
-  } as any,
+  },
   wordOriginal: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: '#1a2744',
     marginBottom: 2,
   },
   wordTransliteration: {
     fontSize: 14,
     color: '#c9a84c',
-    fontStyle: 'italic',
+    fontStyle: 'italic' as const,
     marginBottom: 6,
   },
   wordMeaning: {
@@ -206,7 +206,7 @@ const styles = {
   },
   contextLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: '#1a2744',
   },
   contextBody: {

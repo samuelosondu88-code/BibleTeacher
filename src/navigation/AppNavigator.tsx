@@ -7,7 +7,7 @@ import { VerseData } from '../types';
 type Screen = 'home' | 'results';
 
 interface Props {
-  onVerseSelect: (verse: VerseData) => void;
+  onVerseSelect: (reference: string) => void;
   verse: VerseData | null;
   screen: Screen;
   onBack: () => void;

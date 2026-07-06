@@ -11,18 +11,22 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [verse, setVerse] = useState<VerseData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState('');
 
   const handleSearch = useCallback(async (reference: string) => {
     setIsLoading(true);
-    setLoadingStep('Retrieving verse text…');
 
     try {
       const verseData = await fetchVerse(reference);
+      if (!verseData || !verseData.reference || !verseData.text) {
+        throw new Error('Invalid verse data returned from API.');
+      }
       setVerse(verseData);
       setScreen('results');
     } catch (err: any) {
-      Alert.alert('Verse Not Found', err.message || 'Please try a different reference.');
+      const msg = err?.message || 'Please check the reference and try again.';
+      Alert.alert('Verse Not Found', msg);
+      setVerse(null);
+      setScreen('home');
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +57,7 @@ export default function App() {
         onVerseSelect={handleSearch}
         onBack={handleBack}
       />
-      <LoadingModal visible={isLoading} step={loadingStep} />
+      <LoadingModal visible={isLoading} step="Retrieving verse text…" />
     </SafeAreaView>
   );
 }

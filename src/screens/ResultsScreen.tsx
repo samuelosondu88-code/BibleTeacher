@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,18 +13,30 @@ import {
   getCombinedAnalysis,
   isQuotaError,
 } from '../services/aiService';
-import { Linking } from 'react-native';
 import VerseCard from '../components/VerseCard';
 import AccordionSection from '../components/AccordionSection';
 import SkeletonLoader from '../components/SkeletonLoader';
 import ChatSection from '../components/ChatSection';
-import LoadingModal from '../components/LoadingModal';
 import { renderMarkdown } from '../utils/markdown';
 
 interface Props {
   verse: VerseData;
   onBack: () => void;
 }
+
+const LOADING_STEPS = [
+  'Analyzing verse meaning…',
+  'Researching original languages…',
+  'Studying historical context…',
+  'Preparing life application…',
+];
+
+const SECTIONS = [
+  { title: 'Simple Meaning', icon: '☀', key: 'meaning' as const, lines: 3 },
+  { title: 'Original Language Insights', icon: 'α', key: 'language' as const, lines: 4 },
+  { title: 'Historical & Biblical Context', icon: '📜', key: 'context' as const, lines: 3 },
+  { title: 'Life Application', icon: '🕊', key: 'application' as const, lines: 3 },
+];
 
 export default function ResultsScreen({ verse, onBack }: Props) {
   const [content, setContent] = useState<AIContent>({
@@ -34,19 +46,30 @@ export default function ResultsScreen({ verse, onBack }: Props) {
     application: '',
   });
   const [loading, setLoading] = useState(true);
-  const [loadingStep, setLoadingStep] = useState('Retrieving verse text…');
+  const [loadingStepIndex, setLoadingStepIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
+  const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    stepTimerRef.current = setInterval(() => {
+      setLoadingStepIndex(i => Math.min(i + 1, LOADING_STEPS.length - 1));
+    }, 4000);
+    return () => {
+      if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    };
+  }, []);
 
   const loadContent = useCallback(async () => {
     setLoading(true);
     setHasError(false);
-    setLoadingStep('Generating AI-powered Bible study…');
+    setLoadingStepIndex(0);
 
     try {
       const systemPrompt = buildSystemPrompt(verse);
       const analysis = await getCombinedAnalysis(verse, systemPrompt);
       setContent(analysis);
       setLoading(false);
+      if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     } catch (err: any) {
       const msg = err?.message || 'An error occurred.';
       const isQuota = isQuotaError(err);
@@ -61,6 +84,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
       });
       setHasError(true);
       setLoading(false);
+      if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     }
   }, [verse]);
 
@@ -68,19 +92,16 @@ export default function ResultsScreen({ verse, onBack }: Props) {
     loadContent();
   }, [loadContent]);
 
-  const sections = [
-    { title: 'Simple Meaning', icon: '☀', key: 'meaning' as const, lines: 3 },
-    { title: 'Original Language Insights', icon: 'α', key: 'language' as const, lines: 4 },
-    { title: 'Historical & Biblical Context', icon: '📜', key: 'context' as const, lines: 3 },
-    { title: 'Life Application', icon: '🕊', key: 'application' as const, lines: 3 },
-  ];
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0f766e" />
 
       <View style={styles.headerBar}>
-        <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={onBack}
+          activeOpacity={0.7}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text style={styles.backArrow}>‹</Text>
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
@@ -94,10 +115,20 @@ export default function ResultsScreen({ verse, onBack }: Props) {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled">
         <VerseCard verse={verse} />
 
-        {sections.map(s => (
+        {loading && !hasError && (
+          <View style={styles.loadingHint}>
+            <Text style={styles.loadingHintText}>
+              {LOADING_STEPS[loadingStepIndex]}
+            </Text>
+          </View>
+        )}
+
+        {SECTIONS.map(s => (
           <AccordionSection
             key={s.key}
             title={s.title}
@@ -105,9 +136,9 @@ export default function ResultsScreen({ verse, onBack }: Props) {
             defaultOpen={!loading && !!content[s.key]}>
             {loading && !content[s.key] ? (
               <SkeletonLoader lines={s.lines} />
-            ) : (
+            ) : content[s.key] ? (
               renderMarkdown(content[s.key])
-            )}
+            ) : null}
           </AccordionSection>
         ))}
 
@@ -119,8 +150,6 @@ export default function ResultsScreen({ verse, onBack }: Props) {
 
         {!loading && !hasError && <ChatSection verse={verse} />}
       </ScrollView>
-
-      <LoadingModal visible={loading} step={loadingStep} />
     </View>
   );
 }
@@ -132,28 +161,30 @@ const styles = StyleSheet.create({
   },
   headerBar: {
     backgroundColor: '#0f766e',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     borderBottomColor: '#f59e0b',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   backBtn: {
-    width: 100,
+    minWidth: 80,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   backArrow: {
     color: '#fbbf24',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
   },
   backBtnText: {
     color: '#fbbf24',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   retryBtn: {
@@ -174,6 +205,21 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
+  },
+  loadingHint: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+  },
+  loadingHintText: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontStyle: 'italic',
   },
   retryBar: {
     backgroundColor: '#ffffff',

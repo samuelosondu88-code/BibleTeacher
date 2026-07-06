@@ -2,29 +2,40 @@ import CONFIG from '../config';
 import { VerseData } from '../types';
 
 const BOOK_ALIASES: Record<string, string> = {
-  '1 sam': '1 Samuel', '2 sam': '2 Samuel',
+  gen: 'Genesis', ex: 'Exodus', lev: 'Leviticus', num: 'Numbers',
+  deut: 'Deuteronomy', josh: 'Joshua', judg: 'Judges',
+  ruth: 'Ruth', '1 sam': '1 Samuel', '2 sam': '2 Samuel',
   '1 kgs': '1 Kings', '2 kgs': '2 Kings',
   '1 chr': '1 Chronicles', '2 chr': '2 Chronicles',
-  '1 cor': '1 Corinthians', '2 cor': '2 Corinthians',
-  '1 thes': '1 Thessalonians', '2 thes': '2 Thessalonians',
-  '1 tim': '1 Timothy', '2 tim': '2 Timothy',
-  '1 pet': '1 Peter', '2 pet': '2 Peter',
-  '1 jn': '1 John', '2 jn': '2 John', '3 jn': '3 John',
-  ruth: 'Ruth', esth: 'Esther', prov: 'Proverbs', ecc: 'Ecclesiastes',
+  ezra: 'Ezra', neh: 'Nehemiah', esth: 'Esther', job: 'Job',
+  ps: 'Psalm', psa: 'Psalm', prov: 'Proverbs', ecc: 'Ecclesiastes',
+  song: 'Song of Solomon', isa: 'Isaiah',
   jer: 'Jeremiah', lam: 'Lamentations', ezek: 'Ezekiel', dan: 'Daniel',
   hos: 'Hosea', joel: 'Joel', amos: 'Amos', obad: 'Obadiah',
   jon: 'Jonah', mic: 'Micah', nah: 'Nahum', hab: 'Habakkuk',
   zeph: 'Zephaniah', hag: 'Haggai', zach: 'Zechariah', mal: 'Malachi',
   matt: 'Matthew', mk: 'Mark', lk: 'Luke', jn: 'John',
-  rom: 'Romans', gal: 'Galatians', eph: 'Ephesians', phil: 'Philippians',
-  col: 'Colossians', heb: 'Hebrews', rev: 'Revelation',
+  acts: 'Acts',
+  rom: 'Romans', '1 cor': '1 Corinthians', '2 cor': '2 Corinthians',
+  gal: 'Galatians', eph: 'Ephesians', phil: 'Philippians',
+  col: 'Colossians',
+  '1 thes': '1 Thessalonians', '2 thes': '2 Thessalonians',
+  '1 tim': '1 Timothy', '2 tim': '2 Timothy',
+  titus: 'Titus', philem: 'Philemon',
+  heb: 'Hebrews', james: 'James',
+  '1 pet': '1 Peter', '2 pet': '2 Peter',
+  '1 jn': '1 John', '2 jn': '2 John', '3 jn': '3 John',
+  jude: 'Jude', rev: 'Revelation',
 };
 
 function normalizeReference(ref: string): string {
   const trimmed = ref.trim();
   const lower = trimmed.toLowerCase();
-  for (const [alias, full] of Object.entries(BOOK_ALIASES)) {
-    if (lower.startsWith(alias)) {
+  const sortedAliases = Object.entries(BOOK_ALIASES).sort(
+    ([a], [b]) => b.length - a.length,
+  );
+  for (const [alias, full] of sortedAliases) {
+    if (lower === alias || lower.startsWith(alias + ' ')) {
       return full + trimmed.slice(alias.length);
     }
   }
