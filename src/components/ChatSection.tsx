@@ -132,6 +132,8 @@ export default function ChatSection({ verse }: Props) {
           onContentSizeChange={() =>
             flatListRef.current?.scrollToEnd({ animated: true })
           }
+          showsVerticalScrollIndicator={true}
+          persistentScrollbar={true}
         />
 
         {isLoading && (
