@@ -37,6 +37,12 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
+      - name: Upload APK (artifact fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bible-Teacher-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+
       - name: Upload APK as GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -47,3 +53,7 @@ jobs:
             Download app-release.apk below and install on your Android device.
           artifacts: android/app/build/outputs/apk/release/app-release.apk
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for latest download link
+        run: |
+          echo "Download URL: https://github.com/${{ github.repository }}/releases/latest/download/app-release.apk"
