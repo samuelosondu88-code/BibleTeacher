@@ -116,7 +116,6 @@ android {
 firebaseAppDistribution {
     serviceCredentialsFile = System.getenv("FIREBASE_APP_DISTRIBUTION_CREDENTIALS")
     releaseNotes = System.getenv("FIREBASE_RELEASE_NOTES") ?: "New build"
-    testersFile = "firebase_testers.txt"
 }
 
 dependencies {

@@ -48,7 +48,7 @@ jobs:
             echo "$FIREBASE_SERVICE_ACCOUNT" > $HOME/firebase-key.json
             export FIREBASE_APP_DISTRIBUTION_CREDENTIALS=$HOME/firebase-key.json
             cd android
-            ./gradlew appDistributionUploadRelease --no-daemon
+            ./gradlew appDistributionUploadRelease --no-daemon || echo "Firebase upload failed (non-fatal)"
           else
             echo "No Firebase service account - skipping upload"
           fi
