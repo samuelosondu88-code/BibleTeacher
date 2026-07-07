@@ -34,21 +34,13 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Upload APK (GitHub artifact)
-        uses: actions/upload-artifact@v4
+      - name: Upload APK (GitHub Release)
+        uses: softprops/action-gh-release@v2
         with:
-          name: Bible-Teacher-APK
-          path: android/app/build/outputs/apk/release/app-release.apk
-
-      - name: Firebase Auth & Upload
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "$FIREBASE_SERVICE_ACCOUNT" > $HOME/firebase-key.json
-            export FIREBASE_APP_DISTRIBUTION_CREDENTIALS=$HOME/firebase-key.json
-            cd android
-            ./gradlew appDistributionUploadRelease --no-daemon || echo "Firebase upload failed (non-fatal)"
-          else
-            echo "No Firebase service account - skipping upload"
-          fi
+          tag_name: v1.0.${{ github.run_number }}
+          name: BibleTeecha v1.0.${{ github.run_number }}
+          body: |
+            Auto-built APK for BibleTeecha.
+            Download app-release.apk below and install on your Android device.
+          files: android/app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
