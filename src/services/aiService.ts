@@ -168,7 +168,19 @@ function extractSectionsFromMarkdown(text: string): {
   return result;
 }
 
-export function buildSystemPrompt(verse: VerseData): string {
+function getLanguageInstruction(lang: string): string {
+  const instructions: Record<string, string> = {
+    en: 'Write in English.',
+    pcm: 'Write in Nigerian Pidgin English. Example: "Dis verse mean say..."',
+    ha: 'Write in Hausa (abubuwan da aka sanya a cikin Hausa).',
+    ig: 'Write in Igbo (asụsụ Igbo).',
+    yo: 'Write in Yoruba (èdè Yorùbá).',
+  };
+  return instructions[lang] || 'Write in English.';
+}
+
+export function buildSystemPrompt(verse: VerseData, language?: string): string {
+  const langInstruction = getLanguageInstruction(language || 'en');
   return `You are BibleTeecha, an expert AI Bible study assistant. You have deep knowledge of:
 - Biblical Greek, Hebrew, and Aramaic (including Strong's Concordance numbers)
 - Historical and cultural context of the Bible
@@ -178,6 +190,7 @@ export function buildSystemPrompt(verse: VerseData): string {
 The verse being studied is: ${verse.reference}
 Verse text: "${verse.text}"
 
+${langInstruction}
 Keep explanations clear, warm, and accessible to all believers including new Christians.`;
 }
 
@@ -309,6 +322,7 @@ export async function chatWithAI(
   verse: VerseData,
   question: string,
   history: { role: 'user' | 'assistant'; content: string }[],
+  language?: string,
 ): Promise<string> {
   if (!CONFIG.OPENAI_API_KEY) {
     throw new Error(
@@ -316,10 +330,12 @@ export async function chatWithAI(
     );
   }
 
+  const langInstruction = getLanguageInstruction(language || 'en');
   const systemMessage = {
     role: 'system' as const,
     content: `You are BibleTeecha, an AI Bible study assistant focused on ${verse.reference}.
 Verse text: "${verse.text}"
+${langInstruction}
 Answer questions about this verse. Be insightful, warm, and accessible.`,
   };
 

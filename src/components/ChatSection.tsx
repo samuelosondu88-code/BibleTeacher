@@ -15,6 +15,7 @@ import { renderMarkdown } from '../utils/markdown';
 
 interface Props {
   verse: VerseData;
+  language?: string;
 }
 
 const SUGGESTIONS = [
@@ -24,7 +25,7 @@ const SUGGESTIONS = [
   'What does eternal life mean?',
 ];
 
-export default function ChatSection({ verse }: Props) {
+export default function ChatSection({ verse, language }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '0',
@@ -68,7 +69,7 @@ export default function ChatSection({ verse }: Props) {
         .filter(m => m.id !== '0')
         .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
-      const result = await chatWithAI(verse, messageText, history);
+      const result = await chatWithAI(verse, messageText, history, language);
 
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

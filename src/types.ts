@@ -37,3 +37,11 @@ export type LoadingState =
   | { type: 'loading'; step: string; progress: number }
   | { type: 'error'; message: string }
   | { type: 'success' };
+
+export interface UserPreferences {
+  language: string;
+  translation: string;
+  selectedBook: string;
+  selectedChapter: number;
+  selectedVerse: number;
+}

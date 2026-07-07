@@ -22,6 +22,8 @@ import { renderMarkdown } from '../utils/markdown';
 interface Props {
   verse: VerseData;
   onBack: () => void;
+  language: string;
+  onNewSearch: (reference: string) => void;
 }
 
 const LOADING_STEPS = [
@@ -38,7 +40,7 @@ const SECTIONS = [
   { title: 'Life Application', icon: '🕊', key: 'application' as const, lines: 3 },
 ];
 
-export default function ResultsScreen({ verse, onBack }: Props) {
+export default function ResultsScreen({ verse, onBack, language }: Props) {
   const [content, setContent] = useState<AIContent>({
     meaning: '',
     language: '',
@@ -65,7 +67,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
     setLoadingStepIndex(0);
 
     try {
-      const systemPrompt = buildSystemPrompt(verse);
+      const systemPrompt = buildSystemPrompt(verse, language);
       const analysis = await getCombinedAnalysis(verse, systemPrompt);
       setContent(analysis);
       setLoading(false);
@@ -86,7 +88,7 @@ export default function ResultsScreen({ verse, onBack }: Props) {
       setLoading(false);
       if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     }
-  }, [verse]);
+  }, [verse, language]);
 
   useEffect(() => {
     loadContent();
@@ -148,7 +150,9 @@ export default function ResultsScreen({ verse, onBack }: Props) {
           </TouchableOpacity>
         )}
 
-        {!loading && !hasError && <ChatSection verse={verse} />}
+        {!loading && !hasError && (
+          <ChatSection verse={verse} language={language} />
+        )}
       </ScrollView>
     </View>
   );

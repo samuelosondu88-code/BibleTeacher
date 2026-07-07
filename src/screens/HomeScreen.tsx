@@ -7,16 +7,34 @@ import {
   StyleSheet,
   StatusBar,
   ScrollView,
+  Modal,
 } from 'react-native';
+import { BIBLE_BOOKS, BookInfo } from '../data/bibleMetadata';
+import { LANGUAGES, BIBLE_VERSIONS } from '../config';
 
 interface Props {
-  onSearch: (reference: string) => void;
+  onSearch: (reference: string, translation?: string) => void;
+  language: string;
+  translation: string;
+  onLanguageChange: (lang: string) => void;
+  onTranslationChange: (trans: string) => void;
+  bookmark: { book: string; chapter: number; verse: number };
+  onBookmarkChange: (book: string, chapter: number, verse: number) => void;
 }
 
 const QUICK_REFS = ['John 3:16', 'Psalm 23:1', 'Romans 8:28', 'Proverbs 3:5', 'Isaiah 41:10'];
 
-export default function HomeScreen({ onSearch }: Props) {
+type PickerStep = 'testament' | 'book' | 'chapter' | 'verse';
+
+export default function HomeScreen({
+  onSearch, language, translation, onLanguageChange, onTranslationChange, bookmark, onBookmarkChange,
+}: Props) {
   const [input, setInput] = useState('');
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerStep, setPickerStep] = useState<PickerStep>('testament');
+  const [selectedTestament, setSelectedTestament] = useState<'OT' | 'NT'>('NT');
+  const [selectedBook, setSelectedBook] = useState<BookInfo | null>(null);
+  const [selectedChapter, setSelectedChapter] = useState<number>(0);
 
   const handleSearch = () => {
     const query = input.trim();
@@ -24,6 +42,44 @@ export default function HomeScreen({ onSearch }: Props) {
       onSearch(query);
     }
   };
+
+  const openPicker = () => {
+    setPickerStep('testament');
+    setSelectedTestament('NT');
+    setSelectedBook(null);
+    setSelectedChapter(0);
+    setPickerVisible(true);
+  };
+
+  const handleTestamentSelect = (t: 'OT' | 'NT') => {
+    setSelectedTestament(t);
+    setPickerStep('book');
+  };
+
+  const handleBookSelect = (book: BookInfo) => {
+    setSelectedBook(book);
+    setSelectedChapter(0);
+    setPickerStep('chapter');
+  };
+
+  const handleChapterSelect = (ch: number) => {
+    setSelectedChapter(ch);
+    setPickerStep('verse');
+  };
+
+  const handleVerseSelect = (vrs: number) => {
+    const bookName = selectedBook!.name;
+    const ref = `${bookName} ${selectedChapter}:${vrs}`;
+    setInput(ref);
+    onBookmarkChange(bookName, selectedChapter, vrs);
+    setPickerVisible(false);
+  };
+
+  const books = selectedTestament === 'OT' ? BIBLE_BOOKS.OT : BIBLE_BOOKS.NT;
+  const chapterCount = selectedBook ? selectedBook.chapters.length : 0;
+  const verseCount = selectedChapter > 0 && selectedBook ? selectedBook.chapters[selectedChapter - 1] : 0;
+
+  const hasBookmark = bookmark.book && bookmark.chapter && bookmark.verse;
 
   return (
     <View style={styles.container}>
@@ -52,7 +108,73 @@ export default function HomeScreen({ onSearch }: Props) {
             </Text>
           </View>
 
+          <View style={styles.quickRefsSection}>
+            <Text style={styles.quickRefsTitle}>Quick Features</Text>
+            <View style={styles.quickRefsRow}>
+              {QUICK_REFS.map(ref => (
+                <TouchableOpacity
+                  key={ref}
+                  style={styles.quickRefBtn}
+                  onPress={() => onSearch(ref)}
+                  activeOpacity={0.7}>
+                  <Text style={styles.quickRefBtnText}>{ref}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.bibleNavBtn} onPress={openPicker} activeOpacity={0.8}>
+            <Text style={styles.bibleNavBtnIcon}>📖</Text>
+            <View style={styles.bibleNavBtnTextWrap}>
+              <Text style={styles.bibleNavBtnLabel}>Browse the Bible</Text>
+              <Text style={styles.bibleNavBtnHint}>
+                {hasBookmark
+                  ? `${bookmark.book} ${bookmark.chapter}:${bookmark.verse}`
+                  : 'Tap to select book, chapter & verse'}
+              </Text>
+            </View>
+            <Text style={styles.bibleNavBtnArrow}>›</Text>
+          </TouchableOpacity>
+
           <View style={styles.searchCard}>
+            <View style={styles.selectorRow}>
+              <View style={styles.selectorGroup}>
+                <Text style={styles.selectorLabel}>Language</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
+                  {LANGUAGES.map(l => (
+                    <TouchableOpacity
+                      key={l.code}
+                      style={[styles.selectorChip, language === l.code && styles.selectorChipActive]}
+                      onPress={() => onLanguageChange(l.code)}
+                      activeOpacity={0.7}>
+                      <Text style={[styles.selectorChipText, language === l.code && styles.selectorChipTextActive]}>
+                        {l.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+
+            <View style={styles.selectorRow}>
+              <View style={styles.selectorGroup}>
+                <Text style={styles.selectorLabel}>Version</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
+                  {BIBLE_VERSIONS.map(v => (
+                    <TouchableOpacity
+                      key={v.id}
+                      style={[styles.selectorChip, translation === v.id && styles.selectorChipActive]}
+                      onPress={() => onTranslationChange(v.id)}
+                      activeOpacity={0.7}>
+                      <Text style={[styles.selectorChipText, translation === v.id && styles.selectorChipTextActive]}>
+                        {v.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+
             <Text style={styles.searchLabel}>BIBLE REFERENCE</Text>
             <View style={styles.searchRow}>
               <View style={styles.inputWrap}>
@@ -72,21 +194,6 @@ export default function HomeScreen({ onSearch }: Props) {
                 <Text style={styles.searchBtnIcon}>✦</Text>
                 <Text style={styles.searchBtnText}>Explain</Text>
               </TouchableOpacity>
-            </View>
-
-            <View style={styles.quickRefs}>
-              <Text style={styles.quickLabel}>Quick:</Text>
-              <View style={styles.quickRow}>
-                {QUICK_REFS.map(ref => (
-                  <TouchableOpacity
-                    key={ref}
-                    style={styles.quickBtn}
-                    onPress={() => onSearch(ref)}
-                    activeOpacity={0.7}>
-                    <Text style={styles.quickBtnText}>{ref}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
             </View>
           </View>
 
@@ -123,6 +230,96 @@ export default function HomeScreen({ onSearch }: Props) {
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={pickerVisible} animationType="slide" transparent>
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (pickerStep === 'book') setPickerStep('testament');
+                  else if (pickerStep === 'chapter') setPickerStep('book');
+                  else if (pickerStep === 'verse') setPickerStep('chapter');
+                  else setPickerVisible(false);
+                }}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Text style={styles.pickerBack}>‹ Back</Text>
+              </TouchableOpacity>
+              <Text style={styles.pickerTitle}>
+                {pickerStep === 'testament' ? 'Select Testament' :
+                 pickerStep === 'book' ? `Select ${selectedTestament} Book` :
+                 pickerStep === 'chapter' ? `Select Chapter` :
+                 `Select Verse`}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setPickerVisible(false)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Text style={styles.pickerClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {pickerStep === 'testament' && (
+              <View style={styles.pickerBody}>
+                <TouchableOpacity style={styles.testamentBtn} onPress={() => handleTestamentSelect('OT')} activeOpacity={0.8}>
+                  <Text style={styles.testamentIcon}>📜</Text>
+                  <Text style={styles.testamentTitle}>Old Testament</Text>
+                  <Text style={styles.testamentCount}>39 Books</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.testamentBtn} onPress={() => handleTestamentSelect('NT')} activeOpacity={0.8}>
+                  <Text style={styles.testamentIcon}>✝</Text>
+                  <Text style={styles.testamentTitle}>New Testament</Text>
+                  <Text style={styles.testamentCount}>27 Books</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {pickerStep === 'book' && (
+              <ScrollView style={styles.pickerBody} contentContainerStyle={styles.bookGrid}>
+                {books.map(b => (
+                  <TouchableOpacity
+                    key={b.name}
+                    style={styles.bookBtn}
+                    onPress={() => handleBookSelect(b)}
+                    activeOpacity={0.7}>
+                    <Text style={styles.bookBtnName}>{b.name}</Text>
+                    <Text style={styles.bookBtnChapters}>{b.chapters.length} ch.</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
+            {pickerStep === 'chapter' && (
+              <ScrollView style={styles.pickerBody} contentContainerStyle={styles.numberGrid}>
+                {Array.from({ length: chapterCount }, (_, i) => i + 1).map(ch => (
+                  <TouchableOpacity
+                    key={ch}
+                    style={styles.numBtn}
+                    onPress={() => handleChapterSelect(ch)}
+                    activeOpacity={0.7}>
+                    <Text style={styles.numBtnText}>{ch}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
+            {pickerStep === 'verse' && (
+              <ScrollView style={styles.pickerBody} contentContainerStyle={styles.numberGrid}>
+                {Array.from({ length: verseCount }, (_, i) => i + 1).map(v => (
+                  <TouchableOpacity
+                    key={v}
+                    style={styles.numBtn}
+                    onPress={() => handleVerseSelect(v)}
+                    activeOpacity={0.7}>
+                    <Text style={styles.numBtnText}>{v}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -181,7 +378,7 @@ const styles = StyleSheet.create({
   },
   heroTextWrap: {
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
   },
   heroSmall: {
     fontSize: 12,
@@ -206,6 +403,70 @@ const styles = StyleSheet.create({
     color: '#0f766e',
     fontWeight: '700',
   },
+  quickRefsSection: {
+    width: '100%',
+    marginBottom: 16,
+  },
+  quickRefsTitle: {
+    fontSize: 11,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  quickRefsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  quickRefBtn: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    backgroundColor: '#ffffff',
+  },
+  quickRefBtnText: {
+    fontSize: 13,
+    color: '#4b5563',
+    fontFamily: 'serif',
+  },
+  bibleNavBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 16,
+    padding: 14,
+    width: '100%',
+    marginBottom: 16,
+  },
+  bibleNavBtnIcon: {
+    fontSize: 22,
+    marginRight: 12,
+  },
+  bibleNavBtnTextWrap: {
+    flex: 1,
+  },
+  bibleNavBtnLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1c1917',
+    fontFamily: 'serif',
+  },
+  bibleNavBtnHint: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  bibleNavBtnArrow: {
+    fontSize: 22,
+    color: '#9ca3af',
+    fontWeight: '700',
+  },
   searchCard: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
@@ -218,6 +479,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 12,
     elevation: 3,
+  },
+  selectorRow: {
+    marginBottom: 12,
+  },
+  selectorGroup: {
+  },
+  selectorLabel: {
+    fontSize: 10,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  selectorScroll: {
+    flexDirection: 'row',
+  },
+  selectorChip: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    marginRight: 6,
+    backgroundColor: '#f9fafb',
+  },
+  selectorChipActive: {
+    backgroundColor: '#0f766e',
+    borderColor: '#0f766e',
+  },
+  selectorChipText: {
+    fontSize: 11,
+    color: '#4b5563',
+    fontWeight: '600',
+  },
+  selectorChipTextActive: {
+    color: '#ffffff',
   },
   searchLabel: {
     fontSize: 11,
@@ -266,37 +564,6 @@ const styles = StyleSheet.create({
     color: '#fbbf24',
     fontWeight: '700',
     fontSize: 14,
-    fontFamily: 'serif',
-  },
-  quickRefs: {
-    marginTop: 16,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-  },
-  quickLabel: {
-    fontSize: 10,
-    color: '#6b7280',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  quickRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  quickBtn: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    backgroundColor: '#f9fafb',
-  },
-  quickBtnText: {
-    fontSize: 12,
-    color: '#4b5563',
     fontFamily: 'serif',
   },
   features: {
@@ -363,5 +630,116 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#9ca3af',
     marginTop: 4,
+  },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  pickerContainer: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    minHeight: '50%',
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  pickerBack: {
+    fontSize: 15,
+    color: '#0f766e',
+    fontWeight: '600',
+  },
+  pickerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1c1917',
+    fontFamily: 'serif',
+  },
+  pickerClose: {
+    fontSize: 18,
+    color: '#6b7280',
+    fontWeight: '700',
+  },
+  pickerBody: {
+    padding: 16,
+  },
+  testamentBtn: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  testamentIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  testamentTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1917',
+    fontFamily: 'serif',
+  },
+  testamentCount: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  bookGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingBottom: 20,
+  },
+  bookBtn: {
+    width: '30%',
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  bookBtnName: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1c1917',
+    fontFamily: 'serif',
+    textAlign: 'center',
+  },
+  bookBtnChapters: {
+    fontSize: 10,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  numberGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingBottom: 20,
+  },
+  numBtn: {
+    width: '18%',
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  numBtnText: {
+    fontSize: 14,
+    color: '#1c1917',
+    fontWeight: '600',
   },
 });

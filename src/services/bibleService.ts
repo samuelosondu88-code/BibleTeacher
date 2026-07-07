@@ -42,14 +42,18 @@ function normalizeReference(ref: string): string {
   return trimmed;
 }
 
-export async function fetchVerse(reference: string): Promise<VerseData> {
+export async function fetchVerse(
+  reference: string,
+  translation?: string,
+): Promise<VerseData> {
   const normalized = normalizeReference(reference);
   if (!normalized) {
     throw new Error('Please enter a verse reference (e.g. "John 3:16").');
   }
 
   const encoded = encodeURIComponent(normalized);
-  const url = `${CONFIG.BIBLE_API_URL}/${encoded}?translation=${CONFIG.BIBLE_TRANSLATION}`;
+  const trans = translation || CONFIG.BIBLE_TRANSLATION;
+  const url = `${CONFIG.BIBLE_API_URL}/${encoded}?translation=${trans}`;
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -66,6 +70,6 @@ export async function fetchVerse(reference: string): Promise<VerseData> {
   return {
     reference: data.reference,
     text: data.text.replace(/\n/g, ' ').trim(),
-    translation: data.translation_name || 'King James Version',
+    translation: data.translation_name || translation || 'King James Version',
   };
 }

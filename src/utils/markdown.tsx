@@ -1,11 +1,6 @@
 import React from 'react';
 import { Text } from 'react-native';
 
-interface MarkdownProps {
-  text: string;
-  style?: any;
-}
-
 function parseInlineFormatting(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   const regex = /(\*\*(.*?)\*\*|\*(.*?)\*)/g;
