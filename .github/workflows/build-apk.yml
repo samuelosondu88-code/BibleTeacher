@@ -57,3 +57,12 @@ jobs:
       - name: Check for latest download link
         run: |
           echo "Download URL: https://github.com/${{ github.repository }}/releases/latest/download/app-release.apk"
+
+      - name: Deploy download page to Netlify
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+        run: |
+          zip -r netlify-deploy.zip docs/
+          curl -s -H "Content-Type: application/zip" \
+               -H "Authorization: Bearer ${{ secrets.NETLIFY_AUTH_TOKEN }}" \
+               --data-binary "@netlify-deploy.zip" \
+               https://api.netlify.com/api/v1/sites/bibleteechadl.netlify.app/deploys
