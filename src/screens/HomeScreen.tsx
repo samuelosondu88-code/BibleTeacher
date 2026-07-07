@@ -35,6 +35,8 @@ export default function HomeScreen({
   const [selectedTestament, setSelectedTestament] = useState<'OT' | 'NT'>('NT');
   const [selectedBook, setSelectedBook] = useState<BookInfo | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<number>(0);
+  const [langDropdownVisible, setLangDropdownVisible] = useState(false);
+  const [versionDropdownVisible, setVersionDropdownVisible] = useState(false);
 
   const handleSearch = () => {
     const query = input.trim();
@@ -123,6 +125,30 @@ export default function HomeScreen({
             </View>
           </View>
 
+          <View style={styles.features}>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: '#d9770618' }]}>
+                <Text style={styles.featureEmoji}>📖</Text>
+              </View>
+              <Text style={styles.featureTitle}>Original Language</Text>
+              <Text style={styles.featureDesc}>Greek, Hebrew & Aramaic with Strong's numbers</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: '#0f766e18' }]}>
+                <Text style={styles.featureEmoji}>📜</Text>
+              </View>
+              <Text style={styles.featureTitle}>Historical Context</Text>
+              <Text style={styles.featureDesc}>Cultural & biblical background explained</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <View style={[styles.featureIcon, { backgroundColor: '#05966918' }]}>
+                <Text style={styles.featureEmoji}>🕊</Text>
+              </View>
+              <Text style={styles.featureTitle}>Life Application</Text>
+              <Text style={styles.featureDesc}>Practical wisdom for today</Text>
+            </View>
+          </View>
+
           <TouchableOpacity style={styles.bibleNavBtn} onPress={openPicker} activeOpacity={0.8}>
             <Text style={styles.bibleNavBtnIcon}>📖</Text>
             <View style={styles.bibleNavBtnTextWrap}>
@@ -140,38 +166,20 @@ export default function HomeScreen({
             <View style={styles.selectorRow}>
               <View style={styles.selectorGroup}>
                 <Text style={styles.selectorLabel}>Language</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
-                  {LANGUAGES.map(l => (
-                    <TouchableOpacity
-                      key={l.code}
-                      style={[styles.selectorChip, language === l.code && styles.selectorChipActive]}
-                      onPress={() => onLanguageChange(l.code)}
-                      activeOpacity={0.7}>
-                      <Text style={[styles.selectorChipText, language === l.code && styles.selectorChipTextActive]}>
-                        {l.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <TouchableOpacity style={styles.dropdownBtn} onPress={() => setLangDropdownVisible(true)} activeOpacity={0.7}>
+                  <Text style={styles.dropdownBtnText}>{LANGUAGES.find(l => l.code === language)?.label || 'English'}</Text>
+                  <Text style={styles.dropdownArrow}>▼</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.selectorRow}>
               <View style={styles.selectorGroup}>
                 <Text style={styles.selectorLabel}>Version</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
-                  {BIBLE_VERSIONS.map(v => (
-                    <TouchableOpacity
-                      key={v.id}
-                      style={[styles.selectorChip, translation === v.id && styles.selectorChipActive]}
-                      onPress={() => onTranslationChange(v.id)}
-                      activeOpacity={0.7}>
-                      <Text style={[styles.selectorChipText, translation === v.id && styles.selectorChipTextActive]}>
-                        {v.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <TouchableOpacity style={styles.dropdownBtn} onPress={() => setVersionDropdownVisible(true)} activeOpacity={0.7}>
+                  <Text style={styles.dropdownBtnText}>{BIBLE_VERSIONS.find(v => v.id === translation)?.label || 'King James Version (KJV)'}</Text>
+                  <Text style={styles.dropdownArrow}>▼</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -197,30 +205,6 @@ export default function HomeScreen({
             </View>
           </View>
 
-          <View style={styles.features}>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: '#d9770618' }]}>
-                <Text style={styles.featureEmoji}>📖</Text>
-              </View>
-              <Text style={styles.featureTitle}>Original Language</Text>
-              <Text style={styles.featureDesc}>Greek, Hebrew & Aramaic with Strong's numbers</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: '#0f766e18' }]}>
-                <Text style={styles.featureEmoji}>📜</Text>
-              </View>
-              <Text style={styles.featureTitle}>Historical Context</Text>
-              <Text style={styles.featureDesc}>Cultural & biblical background explained</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <View style={[styles.featureIcon, { backgroundColor: '#05966918' }]}>
-                <Text style={styles.featureEmoji}>🕊</Text>
-              </View>
-              <Text style={styles.featureTitle}>Life Application</Text>
-              <Text style={styles.featureDesc}>Practical wisdom for today</Text>
-            </View>
-          </View>
-
           <View style={styles.footer}>
             <View style={styles.footerDivider} />
             <Text style={styles.footerText}>
@@ -230,6 +214,38 @@ export default function HomeScreen({
           </View>
         </View>
       </ScrollView>
+
+      <Modal visible={langDropdownVisible} transparent animationType="fade" onRequestClose={() => setLangDropdownVisible(false)}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setLangDropdownVisible(false)}>
+          <View style={styles.dropdownMenu}>
+            {LANGUAGES.map(l => (
+              <TouchableOpacity
+                key={l.code}
+                style={[styles.dropdownItem, language === l.code && styles.dropdownItemActive]}
+                onPress={() => { onLanguageChange(l.code); setLangDropdownVisible(false); }}
+                activeOpacity={0.7}>
+                <Text style={[styles.dropdownItemText, language === l.code && styles.dropdownItemTextActive]}>{l.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={versionDropdownVisible} transparent animationType="fade" onRequestClose={() => setVersionDropdownVisible(false)}>
+        <TouchableOpacity style={styles.dropdownOverlay} activeOpacity={1} onPress={() => setVersionDropdownVisible(false)}>
+          <View style={styles.dropdownMenu}>
+            {BIBLE_VERSIONS.map(v => (
+              <TouchableOpacity
+                key={v.id}
+                style={[styles.dropdownItem, translation === v.id && styles.dropdownItemActive]}
+                onPress={() => { onTranslationChange(v.id); setVersionDropdownVisible(false); }}
+                activeOpacity={0.7}>
+                <Text style={[styles.dropdownItemText, translation === v.id && styles.dropdownItemTextActive]}>{v.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <Modal visible={pickerVisible} animationType="slide" transparent>
         <View style={styles.pickerOverlay}>
@@ -493,28 +509,59 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 6,
   },
-  selectorScroll: {
+  dropdownBtn: {
     flexDirection: 'row',
-  },
-  selectorChip: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#d1d5db',
     borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginRight: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     backgroundColor: '#f9fafb',
   },
-  selectorChipActive: {
-    backgroundColor: '#0f766e',
-    borderColor: '#0f766e',
+  dropdownBtnText: {
+    fontSize: 13,
+    color: '#1c1917',
+    fontWeight: '600',
+    flex: 1,
   },
-  selectorChipText: {
-    fontSize: 11,
-    color: '#4b5563',
+  dropdownArrow: {
+    fontSize: 10,
+    color: '#6b7280',
+    marginLeft: 8,
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  dropdownMenu: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 320,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  dropdownItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  dropdownItemActive: {
+    backgroundColor: '#0f766e',
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: '#1c1917',
     fontWeight: '600',
   },
-  selectorChipTextActive: {
+  dropdownItemTextActive: {
     color: '#ffffff',
   },
   searchLabel: {
