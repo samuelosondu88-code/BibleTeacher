@@ -1,2 +1,8 @@
 [build]
   publish = "docs"
+
+[[redirects]]
+  from = "/download"
+  to = "https://github.com/samuelosondu88-code/BibleTeacher/releases/latest/download/app-release.apk"
+  status = 200
+  force = true
